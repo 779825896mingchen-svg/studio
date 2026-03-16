@@ -25,8 +25,9 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   const handleAdd = () => {
     addToCart(item, quantity, instructions, parseInt(spice));
     toast({
-      title: "Added to Basket",
+      title: "Added to basket",
       description: `${quantity}x ${item.name} has been added to your royal order.`,
+      duration: 3500,
     });
     setQuantity(1);
     setInstructions("");
@@ -82,7 +83,9 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
           <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-6 left-6 text-white space-y-1">
-            <h2 className="text-3xl font-headline font-bold">{item.name}</h2>
+            <DialogTitle className="text-3xl font-headline font-bold">
+              {item.name}
+            </DialogTitle>
             <p className="text-white/80 max-w-sm text-sm">{item.description}</p>
           </div>
         </div>

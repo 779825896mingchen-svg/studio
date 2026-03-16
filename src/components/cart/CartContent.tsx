@@ -31,7 +31,7 @@ export function CartContent() {
     <div className="flex flex-col h-full bg-background">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {cart.map((item) => (
-          <div key={`${item.id}-${item.instructions}-${item.selectedSpice}`} className="flex gap-4 p-3 bg-card rounded-lg border border-border shadow-sm group">
+          <div key={item.uid} className="flex gap-4 p-3 bg-card rounded-lg border border-border shadow-sm group">
             <div className="relative w-20 h-20 rounded-md overflow-hidden shrink-0">
               <Image 
                 src={item.imageUrl} 
@@ -52,7 +52,7 @@ export function CartContent() {
                   )}
                 </div>
                 <button 
-                  onClick={() => removeFromCart(item.id, item.instructions, item.selectedSpice)}
+                  onClick={() => removeFromCart(item.uid)}
                   className="text-muted-foreground hover:text-destructive transition-colors p-1"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -65,7 +65,7 @@ export function CartContent() {
                 </span>
                 <div className="flex items-center gap-2 bg-muted rounded-full px-2 py-1">
                   <button 
-                    onClick={() => updateQuantity(item.id, -1, item.instructions, item.selectedSpice)}
+                    onClick={() => updateQuantity(item.uid, -1)}
                     className="p-1 hover:text-primary disabled:opacity-30"
                     disabled={item.quantity <= 1}
                   >
@@ -73,7 +73,7 @@ export function CartContent() {
                   </button>
                   <span className="w-4 text-center text-xs font-bold">{item.quantity}</span>
                   <button 
-                    onClick={() => updateQuantity(item.id, 1, item.instructions, item.selectedSpice)}
+                    onClick={() => updateQuantity(item.uid, 1)}
                     className="p-1 hover:text-primary"
                   >
                     <Plus className="w-3 h-3" />

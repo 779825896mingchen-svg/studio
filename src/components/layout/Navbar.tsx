@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CartContent } from '@/components/cart/CartContent';
 
@@ -46,13 +45,17 @@ export function Navbar() {
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="relative rounded-full border-primary/20 bg-primary/5 hover:bg-primary/10">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-                {totalItems > 0 && (
-                  <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 min-w-[20px] h-5 bg-secondary text-secondary-foreground flex items-center justify-center text-[10px] border-2 border-background">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative rounded-full bg-[#ff3008] hover:bg-[#e22a06] px-3 py-1.5 flex items-center justify-center"
+              >
+                <div className="flex items-center gap-1 text-white">
+                  <ShoppingCart className="w-4 h-4" />
+                  <span className="text-xs font-semibold">
                     {totalItems}
-                  </Badge>
-                )}
+                  </span>
+                </div>
               </Button>
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
