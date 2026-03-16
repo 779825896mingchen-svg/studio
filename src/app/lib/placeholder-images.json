@@ -1,0 +1,41 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-restaurant",
+      "description": "Elegant Chinese restaurant interior with warm lighting",
+      "imageUrl": "https://picsum.photos/seed/restaurant/1200/600",
+      "imageHint": "chinese restaurant interior"
+    },
+    {
+      "id": "general-tso",
+      "description": "Crispy General Tso Chicken with broccoli",
+      "imageUrl": "https://picsum.photos/seed/chicken/600/400",
+      "imageHint": "general tso chicken"
+    },
+    {
+      "id": "dim-sum",
+      "description": "Assorted dim sum in bamboo steamer",
+      "imageUrl": "https://picsum.photos/seed/dimsum/600/400",
+      "imageHint": "dim sum"
+    },
+    {
+      "id": "spring-rolls",
+      "description": "Golden crispy spring rolls with dipping sauce",
+      "imageUrl": "https://picsum.photos/seed/springrolls/600/400",
+      "imageHint": "spring rolls"
+    },
+    {
+      "id": "fried-rice",
+      "description": "Wok-fried rice with shrimp and vegetables",
+      "imageUrl": "https://picsum.photos/seed/friedrice/600/400",
+      "imageHint": "fried rice"
+    },
+    {
+      "id": "kung-pao",
+      "description": "Spicy Kung Pao Chicken with peanuts",
+      "imageUrl": "https://picsum.photos/seed/kungpao/600/400",
+      "imageHint": "kung pao chicken"
+    }
+  ]
+}
