@@ -8,6 +8,7 @@ type OrderItem = {
   price: number;
   instructions?: string;
   selectedSpice?: number;
+  selectedVariant?: string;
 };
 
 type OrderPayload = {
@@ -15,6 +16,7 @@ type OrderPayload = {
   email: string;
   phone: string;
   requests: string;
+  scheduledFor?: string | null;
   cart: OrderItem[];
   totalPrice: number;
   tax: number;
@@ -29,8 +31,11 @@ function buildOrderItemsText(cart: OrderItem[]): string {
         `**${i + 1}. ${item.name}** — $${lineTotal}`,
         `   ×${item.quantity} @ $${item.price.toFixed(2)} each`,
       ];
+      if (item.selectedVariant?.trim()) {
+        lines.push(`   ✓ Choice: ${item.selectedVariant}`);
+      }
       if (item.selectedSpice !== undefined) {
-        lines.push(`   🌶️ Spice level ${item.selectedSpice}`);
+        lines.push(`   🌶️ ${item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}`);
       }
       if (item.instructions?.trim()) {
         lines.push(`   _"${item.instructions}"_`);
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as OrderPayload;
-    const { name, email, phone, requests, cart, totalPrice, tax, totalWithTax } = body;
+    const { name, email, phone, requests, scheduledFor, cart, totalPrice, tax, totalWithTax } = body;
 
     const orderItemsText = buildOrderItemsText(cart);
     const formattedPhone =
@@ -59,11 +64,24 @@ export async function POST(request: NextRequest) {
         ? `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6, 10)}`
         : phone;
 
+    const scheduledLabel = scheduledFor
+      ? `**Scheduled pickup:** ${new Date(scheduledFor).toLocaleString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}`
+      : "**Pick up:** ASAP";
+
     const payload = {
       embeds: [
         {
           title: "👑 New Royal Order",
-          description: "A new order has been placed from the Emperor's Choice checkout.",
+          description: scheduledFor
+            ? "A scheduled order has been placed from the Emperor's Choice checkout."
+            : "A new order has been placed from the Emperor's Choice checkout.",
           color: 0xd4af37, // gold
           timestamp: new Date().toISOString(),
           fields: [
@@ -73,6 +91,7 @@ export async function POST(request: NextRequest) {
                 `**Name:** ${name || "_not provided_"}`,
                 `**Email:** ${email}`,
                 `**Phone:** ${formattedPhone}`,
+                scheduledLabel,
                 requests?.trim()
                   ? `**Special requests:**\n${requests.trim()}`
                   : "**Special requests:** _none_",

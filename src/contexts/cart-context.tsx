@@ -14,6 +14,8 @@ export type CartItem = MenuItem & {
   quantity: number;
   instructions?: string;
   selectedSpice?: number;
+  /** Selected option for items with variants (e.g. "Chicken" for "Chicken or Pork") */
+  selectedVariant?: string;
 };
 
 type CartContextValue = {
@@ -23,7 +25,8 @@ type CartContextValue = {
     item: MenuItem,
     quantity?: number,
     instructions?: string,
-    spice?: number
+    spice?: number,
+    selectedVariant?: string
   ) => void;
   removeFromCart: (itemUid: string) => void;
   updateQuantity: (itemUid: string, delta: number) => void;
@@ -62,12 +65,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       item: MenuItem,
       quantity: number = 1,
       instructions?: string,
-      spice?: number
+      spice?: number,
+      selectedVariant?: string
     ) => {
       const uid = `${item.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       setCart((prev) => [
         ...prev,
-        { ...item, uid, quantity, instructions, selectedSpice: spice },
+        { ...item, uid, quantity, instructions, selectedSpice: spice, selectedVariant },
       ]);
     },
     []

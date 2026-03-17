@@ -33,8 +33,8 @@ export function Navbar() {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="hidden lg:flex flex-col items-end mr-4">
-            <span className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="w-3 h-3"/> (555) 123-4567</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3"/> 123 Imperial St, Clayton</span>
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="w-3 h-3"/> (919) 359-2288</span>
+            <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3"/> 10125 US-70 BUS, Clayton, NC 27520</span>
           </div>
 
           <Link href="/account">

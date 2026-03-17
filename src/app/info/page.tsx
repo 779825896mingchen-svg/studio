@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Phone, Clock, ExternalLink, Mail, Info } from "lucide-react";
+import { MapPin, Phone, Clock, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -31,8 +31,8 @@ export default function InfoPage() {
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 space-y-6 flex-1 flex flex-col">
                   <div className="space-y-2">
-                    <p className="font-bold text-xl">123 Imperial Street</p>
-                    <p className="text-muted-foreground">Clayton, CA 94517</p>
+                    <p className="font-bold text-xl">10125 US-70 BUS</p>
+                    <p className="text-muted-foreground">Clayton, NC 27520</p>
                   </div>
                   <div className="h-48 bg-muted rounded-2xl relative overflow-hidden group">
                     <Image 
@@ -42,7 +42,15 @@ export default function InfoPage() {
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <Button variant="secondary" size="sm" className="rounded-full">Open in Maps</Button>
+                      <Button variant="secondary" size="sm" className="rounded-full" asChild>
+                        <a
+                          href="https://www.google.com/maps/search/?api=1&query=10125+US-70+BUS,+Clayton,+NC+27520"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open in Maps
+                        </a>
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -127,16 +135,7 @@ export default function InfoPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Direct Line
                       </p>
-                      <p className="text-lg font-bold">(555) 123-4567</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 p-4 bg-muted/80 rounded-2xl">
-                    <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Email Inquiries
-                      </p>
-                      <p className="font-medium break-all">hello@emperorschoice.com</p>
+                      <p className="text-lg font-bold">(919) 359-2288</p>
                     </div>
                   </div>
                 </div>
@@ -146,10 +145,8 @@ export default function InfoPage() {
                     <Info className="w-4 h-4 text-secondary shrink-0" /> Ordering Info
                   </h4>
                   <ul className="text-sm space-y-2 text-muted-foreground">
-                    <li className="flex gap-2">• Standard pickup time: 15–25 minutes.</li>
+                    <li className="flex gap-2">• Standard pickup time: 10–15 minutes.</li>
                     <li className="flex gap-2">• We accept all major credit cards.</li>
-                    <li className="flex gap-2">• Large party orders require 24h notice.</li>
-                    <li className="flex gap-2">• Custom spice levels available for most dishes.</li>
                   </ul>
                 </div>
               </CardContent>

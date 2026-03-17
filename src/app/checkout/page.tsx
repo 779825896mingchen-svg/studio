@@ -11,7 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Phone, User, MessageSquare, ShoppingBag, ArrowRight, Flame, Receipt } from "lucide-react";
+import { Phone, User, MessageSquare, ShoppingBag, ArrowRight, Flame, Receipt, Clock, Calendar } from "lucide-react";
+import {
+  getTodayDateString,
+  getTimeSlotsForDate,
+  isOpenToday,
+} from "@/app/lib/store-hours";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CheckoutPage() {
   const { cart, totalPrice, totalItems, clearCart } = useCart();
@@ -20,6 +26,9 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [requests, setRequests] = useState("");
+  const [orderTiming, setOrderTiming] = useState<"asap" | "scheduled">("asap");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [nameTouched, setNameTouched] = useState(false);
 
   const formattedPhone = useMemo(() => {
     const digits = phoneDigits;
@@ -34,6 +43,17 @@ export default function CheckoutPage() {
 
   const isValidPhone = phoneDigits.length === 10;
   const isValidEmail = /\S+@\S+\.\S+/.test(email);
+  const isValidName = name.trim().length > 0;
+
+  const todayDateString = useMemo(() => getTodayDateString(), []);
+  const todayDateObj = useMemo(() => new Date(todayDateString + "T12:00:00"), [todayDateString]);
+  const timeSlots = useMemo(
+    () => (orderTiming === "scheduled" && isOpenToday() ? getTimeSlotsForDate(todayDateObj) : []),
+    [orderTiming, todayDateString]
+  );
+  const isScheduledValid =
+    orderTiming === "asap" ||
+    (orderTiming === "scheduled" && isOpenToday() && scheduleTime && timeSlots.some((s) => s.value === scheduleTime));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -44,6 +64,14 @@ export default function CheckoutPage() {
     const taxAmount = totalPrice * 0.08;
     const totalWithTaxAmount = totalPrice + taxAmount;
 
+    let scheduledFor: string | null = null;
+    if (orderTiming === "scheduled" && isOpenToday() && scheduleTime) {
+      const [hours, minutes] = scheduleTime.split(":").map(Number);
+      const d = new Date(todayDateString + "T12:00:00");
+      d.setHours(hours, minutes, 0, 0);
+      scheduledFor = d.toISOString();
+    }
+
     try {
       const res = await fetch("/api/order", {
         method: "POST",
@@ -53,12 +81,14 @@ export default function CheckoutPage() {
           email,
           phone: phoneDigits,
           requests: requests.trim() || "",
+          scheduledFor,
           cart: cart.map((item) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,
             instructions: item.instructions || "",
             selectedSpice: item.selectedSpice,
+            selectedVariant: item.selectedVariant,
           })),
           totalPrice,
           tax: taxAmount,
@@ -72,7 +102,11 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-      alert("Your royal order has been placed! We'll prepare your feast.");
+      if (scheduledFor) {
+        alert("Your order is scheduled! We'll have it ready for pickup at the chosen time.");
+      } else {
+        alert("Your royal order has been placed! We'll prepare your feast.");
+      }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -166,10 +200,15 @@ export default function CheckoutPage() {
                               <p className="text-[11px] text-muted-foreground mt-0.5">
                                 ×{item.quantity} @ ${item.price.toFixed(2)} each
                               </p>
+                              {item.selectedVariant && (
+                                <p className="text-[11px] text-primary font-medium mt-1">
+                                  Choice: {item.selectedVariant}
+                                </p>
+                              )}
                               {item.selectedSpice !== undefined && (
                                 <div className="flex items-center gap-1 mt-1.5 text-primary text-xs font-medium">
                                   <Flame className="w-3 h-3" />
-                                  Spice level {item.selectedSpice}
+                                  {item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}
                                 </div>
                               )}
                               {item.instructions && (
@@ -202,7 +241,7 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1.5">
-                        Name <span className="text-[11px] text-muted-foreground font-normal">(optional)</span>
+                        Name <span className="text-[11px] text-destructive">*</span>
                       </Label>
                       <Input
                         id="name"
@@ -210,7 +249,11 @@ export default function CheckoutPage() {
                         className="h-11 rounded-xl"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        onBlur={() => setNameTouched(true)}
                       />
+                      {!isValidName && nameTouched && (
+                        <p className="text-[11px] text-destructive">Name is required.</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -242,7 +285,7 @@ export default function CheckoutPage() {
                         id="phone"
                         type="tel"
                         inputMode="tel"
-                        placeholder="(555) 123-4567"
+                        placeholder="(919) 359-2288"
                         className="h-11 rounded-xl"
                         value={formattedPhone}
                         onChange={(e) => {
@@ -285,6 +328,76 @@ export default function CheckoutPage() {
 
                   <Separator className="my-2" />
 
+                  {/* Schedule ordering */}
+                  <div className="space-y-4">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary" />
+                      When do you want your order?
+                    </Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setOrderTiming("asap")}
+                        className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 px-4 text-sm font-medium transition-colors ${
+                          orderTiming === "asap"
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-muted/50 text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        <Clock className="w-4 h-4" />
+                        Pick up ASAP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOrderTiming("scheduled")}
+                        className={`flex items-center justify-center gap-2 rounded-xl border-2 py-3 px-4 text-sm font-medium transition-colors ${
+                          orderTiming === "scheduled"
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-muted/50 text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        <Calendar className="w-4 h-4" />
+                        Schedule for later
+                      </button>
+                    </div>
+                    {orderTiming === "scheduled" && (
+                      <div className="pt-2">
+                        {!isOpenToday() ? (
+                          <p className="text-sm text-muted-foreground py-2">
+                            We&apos;re closed today. Schedule for later is only available on days we&apos;re open. Please choose Pick up ASAP or order on an open day.
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            <Label htmlFor="schedule-time" className="text-xs font-medium text-muted-foreground">
+                              Pick-up time today <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                              value={scheduleTime}
+                              onValueChange={setScheduleTime}
+                              disabled={timeSlots.length === 0}
+                            >
+                              <SelectTrigger id="schedule-time" className="h-11 rounded-xl">
+                                <SelectValue placeholder="Select time (same day only)" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {timeSlots.map((slot) => (
+                                  <SelectItem key={slot.value} value={slot.value}>
+                                    {slot.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[11px] text-muted-foreground">
+                              Same-day only. Times within store hours, 15-min intervals.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator className="my-2" />
+
                   {/* Total Due with Guest Details */}
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
@@ -310,7 +423,7 @@ export default function CheckoutPage() {
                   <Button
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-base md:text-lg rounded-2xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
                     onClick={handlePlaceOrder}
-                    disabled={!isValidEmail || !isValidPhone || cart.length === 0 || isSubmitting}
+                    disabled={!isValidName || !isValidEmail || !isValidPhone || !isScheduledValid || cart.length === 0 || isSubmitting}
                   >
                     {isSubmitting ? "Sending order…" : "Place Royal Order"}
                     {!isSubmitting && <ArrowRight className="w-4 h-4" />}

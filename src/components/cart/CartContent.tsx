@@ -44,8 +44,13 @@ export function CartContent() {
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="font-headline font-bold text-sm leading-tight">{item.name}</h4>
+                  {item.selectedVariant && (
+                    <p className="text-[10px] text-primary font-medium mt-0.5">Choice: {item.selectedVariant}</p>
+                  )}
                   {item.selectedSpice !== undefined && (
-                    <p className="text-[10px] text-primary font-medium mt-1">Spice Level: {item.selectedSpice}</p>
+                    <p className="text-[10px] text-primary font-medium mt-1">
+                      {item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}
+                    </p>
                   )}
                   {item.instructions && (
                     <p className="text-[10px] text-muted-foreground italic line-clamp-1 mt-0.5">"{item.instructions}"</p>

@@ -141,7 +141,7 @@ export default function Home() {
               <MapPin className="text-secondary w-6 h-6 shrink-0" />
               <div>
                 <p className="font-bold">Clayton Location</p>
-                <p className="text-sm opacity-80">123 Imperial St, Clayton, CA</p>
+                <p className="text-sm opacity-80">10125 US-70 BUS, Clayton, NC 27520, CA</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
