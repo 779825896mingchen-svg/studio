@@ -1,6 +1,7 @@
- "use client";
+"use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Phone, User, MessageSquare, ShoppingBag, ArrowRight } from "lucide-react";
+import { Phone, User, MessageSquare, ShoppingBag, ArrowRight, Flame, Receipt } from "lucide-react";
 
 export default function CheckoutPage() {
   const { cart, totalPrice, totalItems, clearCart } = useCart();
@@ -34,17 +35,49 @@ export default function CheckoutPage() {
   const isValidPhone = phoneDigits.length === 10;
   const isValidEmail = /\S+@\S+\.\S+/.test(email);
 
-  const handlePlaceOrder = () => {
-    // For now, just log and clear cart. Hook up to backend later.
-    console.log("Placing order", {
-      name,
-      email,
-      phone: phoneDigits,
-      requests,
-      cart,
-    });
-    clearCart();
-    alert("Your royal order has been placed! (demo)");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handlePlaceOrder = async () => {
+    setSubmitError(null);
+    setIsSubmitting(true);
+    const taxAmount = totalPrice * 0.08;
+    const totalWithTaxAmount = totalPrice + taxAmount;
+
+    try {
+      const res = await fetch("/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: phoneDigits,
+          requests: requests.trim() || "",
+          cart: cart.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            instructions: item.instructions || "",
+            selectedSpice: item.selectedSpice,
+          })),
+          totalPrice,
+          tax: taxAmount,
+          totalWithTax: totalWithTaxAmount,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send order");
+      }
+
+      clearCart();
+      alert("Your royal order has been placed! We'll prepare your feast.");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const tax = totalPrice * 0.08;
@@ -91,8 +124,69 @@ export default function CheckoutPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)] items-start">
-              {/* Left column: customer details */}
+            <div className="grid gap-8 lg:grid-cols-2 items-start">
+              {/* Left: Your Order – same structure as Guest Details */}
+              <Card className="border-border/60 shadow-sm bg-card/95 rounded-3xl">
+                <CardContent className="p-6 md:p-8 space-y-6">
+                  <div className="space-y-1">
+                    <h2 className="text-xl font-headline font-bold flex items-center gap-2">
+                      <Receipt className="w-5 h-5 text-primary" />
+                      Your Order
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {totalItems} item{totalItems === 1 ? "" : "s"} from the imperial kitchen
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                    {cart.map((item) => (
+                      <Card
+                        key={item.uid}
+                        className="rounded-xl border border-border overflow-hidden bg-background/50"
+                      >
+                        <CardContent className="p-0">
+                          <div className="flex gap-3 p-3">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
+                              <Image
+                                src={item.imageUrl}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-headline font-semibold text-sm leading-tight">
+                                  {item.name}
+                                </h3>
+                                <span className="font-bold text-primary text-sm shrink-0">
+                                  ${(item.price * item.quantity).toFixed(2)}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                ×{item.quantity} @ ${item.price.toFixed(2)} each
+                              </p>
+                              {item.selectedSpice !== undefined && (
+                                <div className="flex items-center gap-1 mt-1.5 text-primary text-xs font-medium">
+                                  <Flame className="w-3 h-3" />
+                                  Spice level {item.selectedSpice}
+                                </div>
+                              )}
+                              {item.instructions && (
+                                <p className="text-[11px] text-muted-foreground italic mt-1 line-clamp-2">
+                                  &ldquo;{item.instructions}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Right: Guest Details + Total Due */}
               <Card className="border-border/60 shadow-sm bg-card/95 rounded-3xl">
                 <CardContent className="p-6 md:p-8 space-y-6">
                   <div className="space-y-1">
@@ -188,86 +282,46 @@ export default function CheckoutPage() {
                       We&apos;ll do our best to honor every request. Some changes may affect pricing.
                     </p>
                   </div>
+
+                  <Separator className="my-2" />
+
+                  {/* Total Due with Guest Details */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>${totalPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Estimated tax</span>
+                      <span>${tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-border text-base font-bold">
+                      <span>Total due</span>
+                      <span className="text-primary">${totalWithTax.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {submitError && (
+                    <p className="text-sm text-destructive text-center bg-destructive/10 rounded-xl py-2 px-3">
+                      {submitError}
+                    </p>
+                  )}
+
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-base md:text-lg rounded-2xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+                    onClick={handlePlaceOrder}
+                    disabled={!isValidEmail || !isValidPhone || cart.length === 0 || isSubmitting}
+                  >
+                    {isSubmitting ? "Sending order…" : "Place Royal Order"}
+                    {!isSubmitting && <ArrowRight className="w-4 h-4" />}
+                  </Button>
+
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    By placing your order you agree to our house policies on substitutions, allergies, and
+                    preparation time.
+                  </p>
                 </CardContent>
               </Card>
-
-              {/* Right column: order summary */}
-              <div className="space-y-4">
-                <Card className="border-border/60 shadow-md bg-card/95 rounded-3xl">
-                  <CardContent className="p-6 md:p-7 space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-headline font-bold">Order Summary</h2>
-                        <p className="text-xs text-muted-foreground">
-                          {totalItems} dish{totalItems === 1 ? "" : "es"} from the imperial kitchen
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
-                      {cart.map((item) => (
-                        <div
-                          key={`${item.id}-${item.instructions}-${item.selectedSpice}`}
-                          className="flex items-start justify-between gap-3 rounded-2xl bg-muted/60 px-3 py-3"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-muted-foreground">
-                                ×{item.quantity}
-                              </span>
-                              <p className="text-sm font-medium">{item.name}</p>
-                            </div>
-                            {item.selectedSpice !== undefined && (
-                              <p className="text-[11px] text-primary">
-                                Spice Level: {item.selectedSpice}
-                              </p>
-                            )}
-                            {item.instructions && (
-                              <p className="text-[11px] text-muted-foreground italic line-clamp-1">
-                                “{item.instructions}”
-                              </p>
-                            )}
-                          </div>
-                          <p className="text-sm font-semibold text-primary">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>${totalPrice.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Estimated tax</span>
-                        <span>${tax.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t border-border text-base font-bold">
-                        <span>Total due</span>
-                        <span className="text-primary">${totalWithTax.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-base md:text-lg rounded-2xl shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
-                      onClick={handlePlaceOrder}
-                      disabled={!isValidEmail || !isValidPhone || cart.length === 0}
-                    >
-                      Place Royal Order
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-
-                    <p className="text-[11px] text-muted-foreground text-center">
-                      By placing your order you agree to our house policies on substitutions, allergies, and
-                      preparation time.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           )}
         </div>
