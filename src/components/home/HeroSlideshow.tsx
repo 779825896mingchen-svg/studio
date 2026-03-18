@@ -24,7 +24,7 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
   }, [images.length, intervalMs]);
 
   return (
-    <div className={className}>
+    <div className={["relative", className].filter(Boolean).join(" ")}>
       {images.map((src, i) => (
         <Image
           key={src}
