@@ -34,9 +34,6 @@ function buildOrderItemsText(cart: OrderItem[]): string {
       if (item.selectedVariant?.trim()) {
         lines.push(`   ✓ Choice: ${item.selectedVariant}`);
       }
-      if (item.selectedSpice !== undefined) {
-        lines.push(`   🌶️ ${item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}`);
-      }
       if (item.instructions?.trim()) {
         lines.push(`   _"${item.instructions}"_`);
       }

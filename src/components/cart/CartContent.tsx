@@ -47,11 +47,6 @@ export function CartContent() {
                   {item.selectedVariant && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">Choice: {item.selectedVariant}</p>
                   )}
-                  {item.selectedSpice !== undefined && (
-                    <p className="text-[10px] text-primary font-medium mt-1">
-                      {item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}
-                    </p>
-                  )}
                   {item.instructions && (
                     <p className="text-[10px] text-muted-foreground italic line-clamp-1 mt-0.5">"{item.instructions}"</p>
                   )}

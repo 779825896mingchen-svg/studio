@@ -205,12 +205,6 @@ export default function CheckoutPage() {
                                   Choice: {item.selectedVariant}
                                 </p>
                               )}
-                              {item.selectedSpice !== undefined && (
-                                <div className="flex items-center gap-1 mt-1.5 text-primary text-xs font-medium">
-                                  <Flame className="w-3 h-3" />
-                                  {item.selectedSpice > 0 ? "Spicy" : "Not Spicy"}
-                                </div>
-                              )}
                               {item.instructions && (
                                 <p className="text-[11px] text-muted-foreground italic mt-1 line-clamp-2">
                                   &ldquo;{item.instructions}&rdquo;

@@ -7,7 +7,7 @@ import { MenuItem } from '@/app/lib/menu-data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Flame, Star, Info, ChevronRight } from 'lucide-react';
+import { Plus, Star, Info, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -30,7 +30,6 @@ function stripChoiceParentheses(name: string): string {
 
 export function MenuItemCard({ item }: { item: MenuItem }) {
   const [instructions, setInstructions] = useState("");
-  const [spice, setSpice] = useState("0");
   const [quantity, setQuantity] = useState(1);
   const computedVariants = useMemo(() => {
     if (item.variants && item.variants.length > 0) return item.variants;
@@ -98,7 +97,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
       { ...item, name: displayName, price: unitPrice },
       quantity,
       instructions,
-      parseInt(spice),
+      undefined,
       variantStr
     );
     toast({
@@ -126,11 +125,6 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
                 <Star className="w-3 h-3 fill-current" /> Popular
               </Badge>
             )}
-            {item.spiceLevel && item.spiceLevel > 0 && (
-              <div className="absolute top-2 right-2 flex gap-0.5">
-                <Flame className="w-4 h-4 text-primary fill-primary" />
-              </div>
-            )}
           </div>
           <CardContent className="p-4 flex-1 flex flex-col justify-between">
             <div>
@@ -146,7 +140,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
             <div className="flex items-center justify-between mt-auto">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
               <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
-                Customize <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
+                ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
               </Button>
             </div>
           </CardContent>
@@ -203,22 +197,6 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               ))}
             </div>
           )}
-          <div className="space-y-4">
-            <Label className="text-lg font-headline font-bold flex items-center gap-2">
-              Spice <Flame className="w-4 h-4 text-primary" />
-            </Label>
-            <RadioGroup value={spice} onValueChange={setSpice} className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2 border border-border p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors">
-                <RadioGroupItem value="0" id={`${item.id}-s0`} />
-                <Label htmlFor={`${item.id}-s0`} className="flex-1 cursor-pointer">Not Spicy</Label>
-              </div>
-              <div className="flex items-center space-x-2 border border-border p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors">
-                <RadioGroupItem value="2" id={`${item.id}-s2`} />
-                <Label htmlFor={`${item.id}-s2`} className="flex-1 cursor-pointer">Spicy</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
           <div className="space-y-4">
             <Label className="text-lg font-headline font-bold" htmlFor="instructions">Special Instructions</Label>
             <Textarea 

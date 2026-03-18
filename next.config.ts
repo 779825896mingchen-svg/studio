@@ -31,6 +31,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'img.cdn4dd.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

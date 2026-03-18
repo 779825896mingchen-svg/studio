@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clock, Star, MapPin, ExternalLink } from 'lucide-react';
+import { HeroSlideshow } from '@/components/home/HeroSlideshow';
 
 export default function Home() {
   return (
@@ -12,16 +13,7 @@ export default function Home() {
       
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image 
-            src="https://picsum.photos/seed/restaurant/1200/600" 
-            alt="Chinese Restaurant Interior" 
-            fill 
-            className="object-cover brightness-[0.4]"
-            priority
-            data-ai-hint="chinese restaurant interior"
-          />
-        </div>
+        <HeroSlideshow className="absolute inset-0 z-0" intervalMs={5000} />
         
         <div className="container relative z-10 px-4 text-center space-y-8 max-w-4xl mx-auto">
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -111,7 +103,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Info & External Links */}
+      {/* 外卖 和 地址 和 营业时间 */}
       <section className="py-24 container mx-auto px-4">
         <div className="bg-primary text-primary-foreground rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative">
           <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
@@ -123,7 +115,7 @@ export default function Home() {
               We've partnered with the best delivery services to bring Emperor's Choice right to your palace door.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/721362/" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false" target="_blank" rel="noopener noreferrer">
                 <Button className="bg-white text-[#FF3008] hover:bg-white/90 font-bold px-6 py-6 rounded-xl">
                   Order on DoorDash <ExternalLink className="ml-2 w-4 h-4" />
                 </Button>
@@ -141,15 +133,17 @@ export default function Home() {
               <MapPin className="text-secondary w-6 h-6 shrink-0" />
               <div>
                 <p className="font-bold">Clayton Location</p>
-                <p className="text-sm opacity-80">10125 US-70 BUS, Clayton, NC 27520, CA</p>
+                <p className="text-sm opacity-80">10125 US-70 BUS, Clayton, NC 27520</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <Clock className="text-secondary w-6 h-6 shrink-0" />
               <div>
                 <p className="font-bold">Opening Hours</p>
-                <p className="text-sm opacity-80">Sun-Thu: 11:00 AM - 9:30 PM</p>
-                <p className="text-sm opacity-80">Fri-Sat: 11:00 AM - 10:30 PM</p>
+                <p className="text-sm opacity-80">Mon: Closed</p>
+                <p className="text-sm opacity-80">Tue-Thu: 11:00 AM - 9:00 PM</p>
+                <p className="text-sm opacity-80">Fri-Sat: 11:00 AM - 10:00 PM</p>
+                <p className="text-sm opacity-80">Sun: 12:00 PM - 9:00 PM</p>
               </div>
             </div>
           </div>
