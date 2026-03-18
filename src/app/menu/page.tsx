@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { Navbar } from '@/components/layout/Navbar';
-import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
+import { categories, menuItems } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Star } from 'lucide-react';
@@ -13,29 +14,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>(categories[0] ?? "Menu");
   const [searchQuery, setSearchQuery] = useState("");
-  const categoryScrollAreaRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const root = categoryScrollAreaRef.current;
-    if (!root) return;
-
-    const viewport = root.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
-    if (!viewport) return;
-
-    const onWheel = (e: WheelEvent) => {
-      const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
-      if (!canScrollHorizontally) return;
-
-      // Only remap "vertical wheel" to horizontal scroll.
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-
-      e.preventDefault();
-      viewport.scrollLeft += e.deltaY;
-    };
-
-    viewport.addEventListener("wheel", onWheel, { passive: false });
-    return () => viewport.removeEventListener("wheel", onWheel);
-  }, []);
 
   const filteredItems = useMemo(() => {
     return menuItems.filter(item => {
@@ -60,7 +38,19 @@ export default function MenuPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <header className="bg-primary text-primary-foreground py-12 px-4 relative overflow-hidden">
+      <header className="text-primary-foreground py-12 px-4 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/menu-banner.png"
+            alt="Emperor's Choice menu banner"
+            fill
+            quality={100}
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
         <div className="absolute top-0 right-0 opacity-10 translate-x-1/4 -translate-y-1/4 select-none pointer-events-none">
           <div className="text-[20rem] font-bold">Menu</div>
         </div>
@@ -83,31 +73,70 @@ export default function MenuPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Category Selector */}
-        <div className="mb-12">
-          <ScrollArea className="w-full whitespace-nowrap pb-4">
-            <div className="flex gap-2">
-              <Button 
-                variant={activeCategory === "All" ? "default" : "outline"}
-                className={`rounded-full px-6 transition-all ${activeCategory === "All" ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
-                onClick={() => setActiveCategory("All")}
-              >
-                All Dishes
-              </Button>
-              {categories.map((cat) => (
-                <Button 
-                  key={cat}
-                  variant={activeCategory === cat ? "default" : "outline"}
-                  className={`rounded-full px-6 transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
-                  onClick={() => setActiveCategory(cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
+        <div className="grid gap-8 md:grid-cols-12 items-start">
+          {/* Mobile category selector (horizontal like DoorDash tabs) */}
+          <div className="md:hidden">
+            <ScrollArea className="w-full whitespace-nowrap pb-4">
+              <div className="flex gap-2">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    variant={activeCategory === cat ? "default" : "outline"}
+                    className={`rounded-full px-6 transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
+                    onClick={() => setActiveCategory(cat)}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+
+          {/* Desktop left sidebar category column */}
+          <aside className="hidden md:block md:col-span-3">
+            <div className="sticky top-24">
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/60">
+                  <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground">
+                    Categories
+                  </p>
+                </div>
+                <ScrollArea className="h-[calc(100vh-220px)]">
+                  <div className="p-3 flex flex-col gap-2">
+                    {categories.map((cat) => (
+                      <Button
+                        key={cat}
+                        variant={activeCategory === cat ? "default" : "ghost"}
+                        className={`justify-start rounded-xl px-3 ${activeCategory === cat ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+                        onClick={() => setActiveCategory(cat)}
+                      >
+                        {cat}
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </div>
+          </aside>
+
+          {/* Right content */}
+          <section className="md:col-span-9">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="font-headline text-2xl font-bold">{activeCategory}</h2>
+                {categoryNote && (
+                  <p className="text-sm text-muted-foreground">{categoryNote}</p>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setSearchQuery("")}
+              >
+                Clear Search
+              </Button>
+            </div>
 
             {/* Menu Items Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
@@ -122,12 +151,7 @@ export default function MenuPage() {
                   </div>
                   <h3 className="text-2xl font-headline font-bold">No dishes found</h3>
                   <p className="text-muted-foreground">Try adjusting your search.</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                    }}
-                  >
+                  <Button variant="outline" onClick={() => setSearchQuery("")}>
                     Clear Search
                   </Button>
                 </div>
