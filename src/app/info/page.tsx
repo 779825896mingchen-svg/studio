@@ -104,7 +104,7 @@ export default function InfoPage() {
                   Order through our official delivery partners for convenient home dining.
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-                  <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/721362/" target="_blank" rel="noopener noreferrer">
+                  <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false" target="_blank" rel="noopener noreferrer">
                     <Button size="lg" className="bg-[#FF3008] hover:bg-[#FF3008]/90 text-white px-8 py-8 text-xl rounded-2xl shadow-xl shadow-[#FF3008]/20">
                       DoorDash <ExternalLink className="ml-2 w-5 h-5" />
                     </Button>
@@ -146,7 +146,7 @@ export default function InfoPage() {
                   </h4>
                   <ul className="text-sm space-y-2 text-muted-foreground">
                     <li className="flex gap-2">• Standard pickup time: 10–15 minutes.</li>
-                    <li className="flex gap-2">• We accept all major credit cards.</li>
+                    <li className="flex gap-2">• We accept all major credit cards and digital wallets.</li>
                   </ul>
                 </div>
               </CardContent>

@@ -6,12 +6,12 @@ import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Flame, Star, Info } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function MenuPage() {
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState<string>(categories[0] ?? "Menu");
   const [searchQuery, setSearchQuery] = useState("");
   const categoryScrollAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -39,12 +39,22 @@ export default function MenuPage() {
 
   const filteredItems = useMemo(() => {
     return menuItems.filter(item => {
-      const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+      const matchesCategory = item.category === activeCategory;
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            item.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
+
+  const categoryNote = useMemo(() => {
+    if (activeCategory === "Lunch Combo") {
+      return "Only available 11am–3pm Tuesday - Saturday. Includes roast pork fried rice + can soda.";
+    }
+    if (activeCategory === "Dinner Combo") {
+      return "Available all time. Includes roast pork fried rice + pork egg roll.";
+    }
+    return null;
+  }, [activeCategory]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,7 +85,7 @@ export default function MenuPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Category Selector */}
         <div className="mb-12">
-          <ScrollArea ref={categoryScrollAreaRef} className="w-full whitespace-nowrap pb-4">
+          <ScrollArea className="w-full whitespace-nowrap pb-4">
             <div className="flex gap-2">
               <Button 
                 variant={activeCategory === "All" ? "default" : "outline"}
@@ -99,24 +109,31 @@ export default function MenuPage() {
           </ScrollArea>
         </div>
 
-        {/* Menu Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.length > 0 ? (
-            filteredItems.map((item) => (
-              <MenuItemCard key={item.id} item={item} />
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center space-y-4">
-              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
-                <Search className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-headline font-bold">No dishes found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or category filters.</p>
-              <Button variant="outline" onClick={() => { setSearchQuery(""); setActiveCategory("All"); }}>
-                Clear Filters
-              </Button>
+            {/* Menu Items Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
+                  <MenuItemCard key={item.id} item={item} />
+                ))
+              ) : (
+                <div className="col-span-full py-16 text-center space-y-4">
+                  <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
+                    <Search className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-headline font-bold">No dishes found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search.</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                    }}
+                  >
+                    Clear Search
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </section>
         </div>
 
         {/* Legend */}
@@ -124,10 +141,6 @@ export default function MenuPage() {
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-secondary fill-secondary" />
             <span className="font-medium">Guest Favorite</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Flame className="w-4 h-4 text-primary fill-primary" />
-            <span className="font-medium">Spicy Option</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-sm border border-border bg-muted" />

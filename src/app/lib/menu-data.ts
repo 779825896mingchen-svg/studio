@@ -104,7 +104,7 @@ export const menuItems: MenuItem[] = [
   { id: "D31", name: "Double Sauteed Pork", description: "Dinner combo. Includes roast pork fried rice + can soda.", price: 10.75, category: "Dinner Combo", imageUrl: img("double-pork") },
 
   // Appetizers
-  { id: "A1", name: "Fried Chicken Wings (4)", description: "Crispy fried chicken wings.", price: 7.75, category: "Appetizers", imageUrl: img("wings") },
+  { id: "A1", name: "Fried Chicken Wings (4)", description: "Crispy fried Whole wings.", price: 7.75, category: "Appetizers", imageUrl: img("wings") },
   { id: "A2", name: "Fried Scallop (10)", description: "Ten golden fried scallops.", price: 8.25, category: "Appetizers", imageUrl: img("scallop") },
   { id: "A3", name: "Fried Baby Shrimp (15)", description: "Fifteen crispy baby shrimp.", price: 7.25, category: "Appetizers", imageUrl: img("baby-shrimp") },
   { id: "A4", name: "Roast Pork Egg Roll (1)", description: "One egg roll with roast pork.", price: 1.9, category: "Appetizers", imageUrl: img("egg-roll") },
@@ -112,7 +112,7 @@ export const menuItems: MenuItem[] = [
   { id: "A6", name: "Fried or Steamed Meat Dumplings (8)", description: "Eight dumplings, your choice of fried or steamed.", price: 8.5, category: "Appetizers", imageUrl: img("meat-dumplings"), variants: [{ label: "Style", options: ["Fried", "Steamed"] }] },
   { id: "A7", name: "Fried or Steamed Chicken Dumplings (8)", description: "Eight chicken dumplings, fried or steamed.", price: 8.5, category: "Appetizers", imageUrl: img("chicken-dumplings"), variants: [{ label: "Style", options: ["Fried", "Steamed"] }] },
   { id: "A8", name: "Pu Pu Platter", description: "Assorted appetizer platter for sharing.", price: 13.45, category: "Appetizers", imageUrl: img("pupu"), popular: true },
-  { id: "A9", name: "Fried Mei (10)", description: "Ten fried mei.", price: 7.45, category: "Appetizers", imageUrl: img("fried-mei") },
+  { id: "A9", name: "Fried Wonton (10)", description: "Deep Fried Pork Wonton.", price: 7.45, category: "Appetizers", imageUrl: img("fried-mei") },
   { id: "A10", name: "Teriyaki Chicken (4 sticks)", description: "Four teriyaki chicken skewers.", price: 6.99, category: "Appetizers", imageUrl: img("teriyaki") },
   { id: "A11", name: "Crab Rangoon (8)", description: "Eight cream cheese and crab wontons.", price: 6.99, category: "Appetizers", imageUrl: img("crab-rangoon") },
   { id: "A12", name: "Fried Chicken Nuggets (10)", description: "Ten pieces of fried chicken nuggets.", price: 5.55, category: "Appetizers", imageUrl: img("nuggets") },
