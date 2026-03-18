@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
@@ -46,33 +46,12 @@ export default function MenuPage() {
     });
   }, [activeCategory, searchQuery]);
 
-  const categoryNote: ReactNode = useMemo(() => {
+  const categoryNote = useMemo(() => {
     if (activeCategory === "Lunch Combo") {
-      return (
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-            Lunch Combo availability
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Served Tuesday–Saturday from <span className="font-semibold">11:00am–3:00pm</span>.
-            Each combo includes <span className="font-semibold">roast pork fried rice</span> and a{" "}
-            <span className="font-semibold">canned soda</span>.
-          </p>
-        </div>
-      );
+      return "Only available 11am–3pm Tuesday - Saturday. Includes roast pork fried rice + can soda.";
     }
     if (activeCategory === "Dinner Combo") {
-      return (
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/80">
-            Dinner Combo details
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Available all day. Each combo includes <span className="font-semibold">roast pork fried rice</span> and a{" "}
-            <span className="font-semibold">pork egg roll</span>.
-          </p>
-        </div>
-      );
+      return "Available all time. Includes roast pork fried rice + pork egg roll.";
     }
     return null;
   }, [activeCategory]);
@@ -130,38 +109,32 @@ export default function MenuPage() {
           </ScrollArea>
         </div>
 
-        <section>
-          {categoryNote ? (
-            <div className="mb-6 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
-              {categoryNote}
-            </div>
-          ) : null}
-
-          {/* Menu Items Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-            {filteredItems.length > 0 ? (
-              filteredItems.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center space-y-4">
-                <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
-                  <Search className="w-10 h-10" />
+            {/* Menu Items Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
+                  <MenuItemCard key={item.id} item={item} />
+                ))
+              ) : (
+                <div className="col-span-full py-16 text-center space-y-4">
+                  <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
+                    <Search className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-headline font-bold">No dishes found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search.</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                    }}
+                  >
+                    Clear Search
+                  </Button>
                 </div>
-                <h3 className="text-2xl font-headline font-bold">No dishes found</h3>
-                <p className="text-muted-foreground">Try adjusting your search.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearchQuery("");
-                  }}
-                >
-                  Clear Search
-                </Button>
-              </div>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          </section>
+        </div>
 
         {/* Legend */}
         <div className="mt-16 p-6 bg-card rounded-2xl border border-border flex flex-wrap gap-8 items-center justify-center text-sm">

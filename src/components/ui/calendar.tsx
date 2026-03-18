@@ -9,8 +9,6 @@ import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-type NavIconProps = React.SVGProps<SVGSVGElement> & { className?: string };
-
 function Calendar({
   className,
   classNames,
@@ -56,12 +54,12 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: ({ className, orientation, ...props }) =>
-          orientation === "left" ? (
-            <ChevronLeft className={cn("h-4 w-4", className)} {...(props as NavIconProps)} />
-          ) : (
-            <ChevronRight className={cn("h-4 w-4", className)} {...(props as NavIconProps)} />
-          ),
+        IconLeft: ({ className, ...props }) => (
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+        ),
+        IconRight: ({ className, ...props }) => (
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+        ),
       }}
       {...props}
     />
