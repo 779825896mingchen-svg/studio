@@ -10,13 +10,7 @@ type HeroSlideshowProps = {
 
 export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowProps) {
   const images = useMemo(
-    () => [
-      "https://picsum.photos/seed/emperor-hero-1/2400/1400",
-      "https://picsum.photos/seed/emperor-hero-2/2400/1400",
-      "https://picsum.photos/seed/emperor-hero-3/2400/1400",
-      "https://picsum.photos/seed/emperor-hero-4/2400/1400",
-      "https://picsum.photos/seed/emperor-hero-5/2400/1400",
-    ],
+    () => ["/1.png", "/2.png", "/3.png", "/4.png", "/5.png"],
     []
   );
 
@@ -37,6 +31,7 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
           src={src}
           alt="Emperor's Choice featured dish"
           fill
+          quality={100}
           sizes="100vw"
           priority={i === 0}
           className={[
