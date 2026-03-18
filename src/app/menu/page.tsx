@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,29 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const categoryScrollAreaRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const root = categoryScrollAreaRef.current;
+    if (!root) return;
+
+    const viewport = root.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+
+    const onWheel = (e: WheelEvent) => {
+      const canScrollHorizontally = viewport.scrollWidth > viewport.clientWidth;
+      if (!canScrollHorizontally) return;
+
+      // Only remap "vertical wheel" to horizontal scroll.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+      e.preventDefault();
+      viewport.scrollLeft += e.deltaY;
+    };
+
+    viewport.addEventListener("wheel", onWheel, { passive: false });
+    return () => viewport.removeEventListener("wheel", onWheel);
+  }, []);
 
   const filteredItems = useMemo(() => {
     return menuItems.filter(item => {
@@ -52,7 +75,7 @@ export default function MenuPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Category Selector */}
         <div className="mb-12">
-          <ScrollArea className="w-full whitespace-nowrap pb-4">
+          <ScrollArea ref={categoryScrollAreaRef} className="w-full whitespace-nowrap pb-4">
             <div className="flex gap-2">
               <Button 
                 variant={activeCategory === "All" ? "default" : "outline"}
