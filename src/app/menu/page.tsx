@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,19 @@ export default function MenuPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <header className="bg-primary text-primary-foreground py-12 px-4 relative overflow-hidden">
+      <header className="text-primary-foreground py-12 px-4 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/6.png"
+            alt="Emperor's Choice menu banner"
+            fill  
+            quality={100}
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
         <div className="absolute top-0 right-0 opacity-10 translate-x-1/4 -translate-y-1/4 select-none pointer-events-none">
           <div className="text-[20rem] font-bold">Menu</div>
         </div>
