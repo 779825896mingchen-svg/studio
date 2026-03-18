@@ -21,6 +21,7 @@ export const categories = [
   "Soup",
   "Fried Rice",
   "Lo Mein",
+  "Chow Mein",  
   "Chow Mai Fun",
   "Egg Foo Young",
   "Roast Pork",
@@ -150,10 +151,10 @@ export const menuItems: MenuItem[] = [
   { id: "LM6", name: "House Special Lo Mein w. Rice & Noodles", description: "Small $8.25 / Large $11.55.", price: 11.55, category: "Lo Mein", imageUrl: img("lm-house-combo"), variants: [{ label: "Size", options: [{ label: "Small", price: 8.25 }, { label: "Large", price: 11.55 }] }] },
 
   // Chow Mai Fun
-  { id: "CMF1", name: "Pork or Chicken Chow Mai Fun (w. White Rice)", description: "Rice vermicelli. Small $7.95 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-pork-chicken"), variants: [{ label: "Choice", options: ["Pork", "Chicken"] }, { label: "Size", options: [{ label: "Small", price: 7.95 }, { label: "Large", price: 9.5 }] }] },
-  { id: "CMF2", name: "Shrimp or Beef Chow Mai Fun (w. White Rice)", description: "Small $8.75 / Large $10.50.", price: 10.5, category: "Chow Mai Fun", imageUrl: img("cmf-shrimp-beef"), variants: [{ label: "Choice", options: ["Shrimp", "Beef"] }, { label: "Size", options: [{ label: "Small", price: 8.75 }, { label: "Large", price: 10.5 }] }] },
-  { id: "CMF3", name: "Pork or Chicken Chow Mai Fun (Fried Rice)", description: "Small $7.95 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-pc-fr"), variants: [{ label: "Choice", options: ["Pork", "Chicken"] }, { label: "Size", options: [{ label: "Small", price: 7.95 }, { label: "Large", price: 9.5 }] }] },
-  { id: "CMF4", name: "Shrimp or Beef Chow Mai Fun (Fried Rice)", description: "Small $8.75 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-sb-fr"), variants: [{ label: "Choice", options: ["Shrimp", "Beef"] }, { label: "Size", options: [{ label: "Small", price: 8.75 }, { label: "Large", price: 9.5 }] }] },
+  { id: "CMF1", name: "Pork or Chicken Chow Mai Fun ", description: "Rice vermicelli. Small $7.95 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-pork-chicken"), variants: [{ label: "Choice", options: ["Pork", "Chicken"] }, { label: "Size", options: [{ label: "Small", price: 7.95 }, { label: "Large", price: 9.5 }] }] },
+  { id: "CMF2", name: "Shrimp or Beef Chow Mai Fun ", description: "Small $8.75 / Large $10.50.", price: 10.5, category: "Chow Mai Fun", imageUrl: img("cmf-shrimp-beef"), variants: [{ label: "Choice", options: ["Shrimp", "Beef"] }, { label: "Size", options: [{ label: "Small", price: 8.75 }, { label: "Large", price: 10.5 }] }] },
+  { id: "CMF3", name: "Pork or Chicken Chow Mai Fun ", description: "Small $7.95 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-pc-fr"), variants: [{ label: "Choice", options: ["Pork", "Chicken"] }, { label: "Size", options: [{ label: "Small", price: 7.95 }, { label: "Large", price: 9.5 }] }] },
+  { id: "CMF4", name: "Shrimp or Beef Chow Mai Fun ", description: "Small $8.75 / Large $9.50.", price: 9.5, category: "Chow Mai Fun", imageUrl: img("cmf-sb-fr"), variants: [{ label: "Choice", options: ["Shrimp", "Beef"] }, { label: "Size", options: [{ label: "Small", price: 8.75 }, { label: "Large", price: 9.5 }] }] },
 
   // Egg Foo Young (with white rice)
   { id: "EFY1", name: "Vegetable Egg Foo Young", description: "Small $8.50. With white rice.", price: 8.5, category: "Egg Foo Young", imageUrl: img("efy-veg") },

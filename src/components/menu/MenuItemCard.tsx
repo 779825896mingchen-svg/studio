@@ -28,7 +28,7 @@ function stripChoiceParentheses(name: string): string {
   return name.replace(/\s*\([^)]+\)\s*/, " ").replace(/\s{2,}/g, " ").trim();
 }
 
-export function MenuItemCard({ item }: { item: MenuItem }) {
+export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout?: "grid" | "row" }) {
   const [instructions, setInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const computedVariants = useMemo(() => {
@@ -112,39 +112,86 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
-          <div className="relative h-48 overflow-hidden">
-            <Image 
-              src={item.imageUrl} 
-              alt={item.name} 
-              fill 
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            {item.popular && (
-              <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground gap-1 border-none shadow-md">
-                <Star className="w-3 h-3 fill-current" /> Popular
-              </Badge>
-            )}
-          </div>
-          <CardContent className="p-4 flex-1 flex flex-col justify-between">
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-headline font-bold text-lg group-hover:text-primary transition-colors">{displayName}</h3>
-                <span className="font-bold text-primary">${item.price.toFixed(2)}</span>
+        {layout === "row" ? (
+          <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300 border-border/60 hover:border-primary/40 bg-card">
+            <CardContent className="p-0">
+              <div className="flex items-stretch">
+                <div className="flex-1 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-headline font-bold text-base sm:text-lg leading-tight group-hover:text-primary transition-colors">
+                      {displayName}
+                    </h3>
+                    <span className="font-bold text-primary shrink-0">${item.price.toFixed(2)}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      {item.category}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Tap to add
+                    </span>
+                  </div>
+                </div>
+
+                <div className="relative w-36 sm:w-44 md:w-52 shrink-0">
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.name}
+                    fill
+                    className="object-cover"
+                  />
+                  {item.popular && (
+                    <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground gap-1 border-none shadow-md">
+                      <Star className="w-3 h-3 fill-current" /> Popular
+                    </Badge>
+                  )}
+                  <div className="absolute bottom-3 right-3">
+                    <div className="w-10 h-10 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center">
+                      <Plus className="w-5 h-5 text-foreground" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic font-body">
-                {item.description}
-              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
+            <div className="relative h-48 overflow-hidden">
+              <Image 
+                src={item.imageUrl} 
+                alt={item.name} 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {item.popular && (
+                <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground gap-1 border-none shadow-md">
+                  <Star className="w-3 h-3 fill-current" /> Popular
+                </Badge>
+              )}
             </div>
-            
-            <div className="flex items-center justify-between mt-auto">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
-              <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
-                ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-headline font-bold text-lg group-hover:text-primary transition-colors">{displayName}</h3>
+                  <span className="font-bold text-primary">${item.price.toFixed(2)}</span>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic font-body">
+                  {item.description}
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between mt-auto">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
+                <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
+                  ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </DialogTrigger>
       
       <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl">

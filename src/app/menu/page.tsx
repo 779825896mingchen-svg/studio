@@ -38,23 +38,23 @@ export default function MenuPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <header className="text-primary-foreground py-12 px-4 relative overflow-hidden">
+      <header className="text-primary-foreground px-4 relative overflow-hidden h-[260px] md:h-[320px] flex items-center">
         <div className="absolute inset-0">
           <Image
-            src="/menu-banner.png"
-            alt="Emperor's Choice menu banner"
+            src="/imperial-menu-bg.png"
+            alt="Imperial Menu background"
             fill
             quality={100}
             sizes="100vw"
-            className="object-cover"
+            className="bg-[#7a0d0d]"
             priority
           />
           <div className="absolute inset-0 bg-black/55" />
-        </div>
+          </div>
         <div className="absolute top-0 right-0 opacity-10 translate-x-1/4 -translate-y-1/4 select-none pointer-events-none">
-          <div className="text-[20rem] font-bold">Menu</div>
+          <div className="text-[20rem] font-bold"></div>
         </div>
-        <div className="container mx-auto relative z-10 text-center space-y-6">
+        <div className="container mx-auto relative z-10 text-center space-y-6 py-10">
           <h1 className="text-4xl md:text-5xl font-headline font-bold">Imperial Menu</h1>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto">
             Each dish is prepared to order with authentic techniques and royal standards.
@@ -138,14 +138,14 @@ export default function MenuPage() {
               </Button>
             </div>
 
-            {/* Menu Items Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            {/* Menu Items as two-column rows */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
-                  <MenuItemCard key={item.id} item={item} />
+                  <MenuItemCard key={item.id} item={item} layout="row" />
                 ))
               ) : (
-                <div className="col-span-full py-16 text-center space-y-4">
+                <div className="py-16 text-center space-y-4">
                   <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto text-muted-foreground">
                     <Search className="w-10 h-10" />
                   </div>
@@ -163,12 +163,11 @@ export default function MenuPage() {
         {/* Legend */}
         <div className="mt-16 p-6 bg-card rounded-2xl border border-border flex flex-wrap gap-8 items-center justify-center text-sm">
           <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-secondary fill-secondary" />
-            <span className="font-medium">Guest Favorite</span>
+           
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-border bg-muted" />
-            <span className="font-medium text-muted-foreground">Images may differ from actual presentation</span>
+            
+            
           </div>
         </div>
       </main>
