@@ -10,11 +10,15 @@ type HeroSlideshowProps = {
 
 export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowProps) {
   const images = useMemo(
-    () => ["/1.png", "/2.png", "/3.png", "/4.png", "/5.png"],
+    () => ["/1.jpg", "/2.jpg", "/3.jpg", "/4.jpg", "/5.png"],
     []
   );
 
   const [idx, setIdx] = useState(0);
+
+  // If the caller already positions this container (e.g. `absolute inset-0`),
+  // we shouldn't force `relative` as it can conflict with the intended layout.
+  const rootClassName = className ?? "relative";
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -24,7 +28,7 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
   }, [images.length, intervalMs]);
 
   return (
-    <div className={["relative", className].filter(Boolean).join(" ")}>
+    <div className={rootClassName}>
       {images.map((src, i) => (
         <Image
           key={src}
