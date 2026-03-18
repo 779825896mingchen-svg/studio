@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
+import { ShoppingCart, Menu as MenuIcon, Phone, MapPin, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -37,11 +37,27 @@ export function Navbar() {
             <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3"/> 10125 US-70 BUS, Clayton, NC 27520</span>
           </div>
 
-          <Link href="/account">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <User className="w-5 h-5" />
+          <div className="hidden sm:flex items-center gap-2">
+            <Button
+              asChild
+              className="rounded-full h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+            >
+              <Link href="/signin" className="flex items-center gap-2">
+                <LogIn className="w-4 h-4" />
+                <span className="font-semibold">Sign In</span>
+              </Link>
             </Button>
-          </Link>
+            <Button
+              asChild
+              variant="secondary"
+              className="rounded-full h-9 px-4 bg-muted text-foreground hover:bg-muted/80 border border-border shadow-sm"
+            >
+              <Link href="/signup" className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                <span className="font-semibold">Sign Up</span>
+              </Link>
+            </Button>
+          </div>
 
           <Sheet>
             <SheetTrigger asChild>
@@ -84,6 +100,10 @@ export function Navbar() {
                   <Link href="/info" className="text-lg font-medium hover:text-primary">Restaurant Info</Link>
                   <Link href="/orders" className="text-lg font-medium hover:text-primary">My Orders</Link>
                   <Link href="/delivery" className="text-lg font-medium hover:text-primary">Delivery Services</Link>
+                  <div className="pt-4 border-t border-border/60 flex flex-col gap-3">
+                    <Link href="/signin" className="text-lg font-medium hover:text-primary">Sign In</Link>
+                    <Link href="/signup" className="text-lg font-medium hover:text-primary">Sign Up</Link>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
