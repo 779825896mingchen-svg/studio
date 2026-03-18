@@ -1,8 +1,9 @@
 
 "use client";
 
+import Image from "next/image";
 import Link from 'next/link';
-import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
+import { ShoppingCart, Menu as MenuIcon, Phone, MapPin, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
