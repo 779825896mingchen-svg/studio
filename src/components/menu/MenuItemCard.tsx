@@ -118,6 +118,8 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               src={item.imageUrl} 
               alt={item.name} 
               fill 
+              unoptimized
+              loading="lazy"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             {item.popular && (
@@ -149,7 +151,14 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
       
       <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
         <div className="relative h-48 sm:h-64">
-          <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            unoptimized
+            loading="lazy"
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-6 left-6 text-white space-y-1">
             <DialogTitle className="text-3xl font-headline font-bold">

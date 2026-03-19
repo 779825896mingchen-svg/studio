@@ -24,6 +24,8 @@ export function Navbar() {
                 fill
                 sizes="40px"
                 className="object-contain"
+                unoptimized
+                loading="eager"
                 priority
               />
             </div>

@@ -70,7 +70,15 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-              <Image src="https://picsum.photos/seed/chicken/600/400" alt="Chef's Specials" fill className="object-cover group-hover:scale-110 transition-transform duration-500" data-ai-hint="chinese dish" />
+              <Image
+                src="https://picsum.photos/seed/chicken/600/400"
+                alt="Chef's Specials"
+                fill
+                unoptimized
+                loading="lazy"
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                data-ai-hint="chinese dish"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
                 <h3 className="text-2xl font-headline font-bold text-white mb-2">Chef's Specials</h3>
                 <p className="text-white/70 text-sm mb-4">Our most celebrated and unique creations.</p>
@@ -80,7 +88,15 @@ export default function Home() {
               </div>
             </div>
             <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-              <Image src="https://picsum.photos/seed/dimsum/600/400" alt="Dim Sum" fill className="object-cover group-hover:scale-110 transition-transform duration-500" data-ai-hint="dim sum" />
+              <Image
+                src="https://picsum.photos/seed/dimsum/600/400"
+                alt="Dim Sum"
+                fill
+                unoptimized
+                loading="lazy"
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                data-ai-hint="dim sum"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
                 <h3 className="text-2xl font-headline font-bold text-white mb-2">Dim Sum Corner</h3>
                 <p className="text-white/70 text-sm mb-4">Delicate steamed and fried delicacies.</p>
@@ -90,7 +106,15 @@ export default function Home() {
               </div>
             </div>
             <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-              <Image src="https://picsum.photos/seed/friedrice/600/400" alt="Fast Favorites" fill className="object-cover group-hover:scale-110 transition-transform duration-500" data-ai-hint="fried rice" />
+              <Image
+                src="https://picsum.photos/seed/friedrice/600/400"
+                alt="Fast Favorites"
+                fill
+                unoptimized
+                loading="lazy"
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                data-ai-hint="fried rice"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
                 <h3 className="text-2xl font-headline font-bold text-white mb-2">Wok Classics</h3>
                 <p className="text-white/70 text-sm mb-4">The ultimate comfort food essentials.</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type HeroSlideshowProps = {
   intervalMs?: number;
@@ -15,32 +15,68 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
   );
 
   const [idx, setIdx] = useState(0);
+  const [prevIdx, setPrevIdx] = useState<number | null>(null);
+  const touchStartX = useRef<number | null>(null);
+
+  // If the caller already positions this container (e.g. `absolute inset-0`),
+  // we shouldn't force `relative` as it can conflict with the intended layout.
+  const rootClassName = className ?? "relative";
 
   useEffect(() => {
     const t = setInterval(() => {
-      setIdx((prev) => (prev + 1) % images.length);
+      // Keep rerenders cheap by only mounting the current slide (+ previous for fade).
+      setIdx((prev) => {
+        setPrevIdx(prev);
+        return (prev + 1) % images.length;
+      });
     }, intervalMs);
     return () => clearInterval(t);
   }, [images.length, intervalMs]);
 
   return (
-    <div className={className}>
-      {images.map((src, i) => (
-        <Image
-          key={src}
-          src={src}
-          alt="Emperor's Choice featured dish"
-          fill
-          quality={100}
-          sizes="100vw"
-          priority={i === 0}
-          className={[
-            "object-cover brightness-[0.7]",
-            "transition-opacity duration-1000 ease-in-out",
-            i === idx ? "opacity-100" : "opacity-0",
-          ].join(" ")}
-        />
-      ))}
+    <div
+      className={rootClassName}
+      onPointerDown={(e) => {
+        if (e.pointerType !== "touch") return;
+        touchStartX.current = e.clientX;
+      }}
+      onPointerUp={(e) => {
+        if (e.pointerType !== "touch") return;
+        if (touchStartX.current === null) return;
+
+        const dx = e.clientX - touchStartX.current;
+        touchStartX.current = null;
+
+        // Swipe threshold tuned for typical finger movement.
+        if (Math.abs(dx) < 40) return;
+        setIdx((prev) => {
+          if (dx < 0) return (prev + 1) % images.length;
+          return (prev - 1 + images.length) % images.length;
+        });
+      }}
+    >
+      {images.map((src, i) => {
+        const shouldRender = i === idx || i === prevIdx;
+        if (!shouldRender) return null;
+
+        return (
+          <Image
+            key={src}
+            src={src}
+            alt="Emperor's Choice featured dish"
+            fill
+            quality={80}
+            sizes="100vw"
+            loading={i === idx ? "eager" : "lazy"}
+            priority={i === idx}
+            className={[
+              "object-cover brightness-[0.7]",
+              "transition-opacity duration-700 ease-in-out",
+              i === idx ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+          />
+        );
+      })}
     </div>
   );
 }

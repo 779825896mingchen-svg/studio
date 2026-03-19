@@ -39,6 +39,8 @@ export default function InfoPage() {
                       src="https://picsum.photos/seed/map/600/400" 
                       alt="Map Location" 
                       fill 
+                      unoptimized
+                      loading="lazy"
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
