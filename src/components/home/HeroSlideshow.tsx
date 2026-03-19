@@ -65,8 +65,9 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
             src={src}
             alt="Emperor's Choice featured dish"
             fill
-            quality={80}
-            sizes="100vw"
+            // Request higher quality output; actual pixel sharpness is limited by source image resolution.
+            quality={100}
+            sizes="(max-width: 768px) 100vw, 1920px"
             loading={i === idx ? "eager" : "lazy"}
             priority={i === idx}
             className={[

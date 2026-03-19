@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Clock, Star, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowRight, Clock, Star, MapPin, ExternalLink, LogIn, UserPlus } from 'lucide-react';
 import { HeroSlideshow } from '@/components/home/HeroSlideshow';
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
         <div className="container relative z-10 px-4 text-center space-y-8 max-w-4xl mx-auto">
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Badge className="bg-secondary text-secondary-foreground px-4 py-1 mb-4 rounded-full font-bold tracking-widest text-xs uppercase">
-              The Finest Chinese Cuisine in Clayton
+              The Best Chinese Cuisine in Clayton
             </Badge>
             <h1 className="text-5xl md:text-7xl font-headline font-bold text-white tracking-tight">
               A Royal Feast for Your <span className="text-secondary">Senses</span>
@@ -136,7 +136,7 @@ export default function Home() {
           <div className="relative z-10 space-y-6 max-w-xl">
             <h2 className="text-4xl md:text-5xl font-headline font-bold">Can't Make it to Us?</h2>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              We've partnered with the best delivery services to bring Emperor's Choice right to your palace door.
+              We've partnered with the best delivery services to bring Emperor's Choice right to your door.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false" target="_blank" rel="noopener noreferrer">
@@ -174,18 +174,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="py-12 border-t border-border mt-12 bg-card">
-        <div className="container mx-auto px-4 text-center">
-          <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-6">E</div>
-          <h2 className="font-headline text-2xl font-bold mb-4">EMPEROR'S CHOICE</h2>
-          <p className="text-muted-foreground mb-8">© 2024 Emperor's Choice Chinese Restaurant. All rights reserved.</p>
-          <div className="flex justify-center gap-8 text-sm font-medium">
-            <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
-            <Link href="/admin/login" className="hover:text-primary">Employee Login</Link>
-          </div>
-        </div>
-      </footer>
+      {/* Footer removed (per latest design request) */}
     </div>
   );
 }

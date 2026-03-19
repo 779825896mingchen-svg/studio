@@ -167,17 +167,7 @@ export default function MenuPage() {
           </section>
         </div>
 
-        {/* Legend */}
-        <div className="mt-16 p-6 bg-card rounded-2xl border border-border flex flex-wrap gap-8 items-center justify-center text-sm">
-          <div className="flex items-center gap-2">
-            <Star className="w-4 h-4 text-secondary fill-secondary" />
-            <span className="font-medium">Guest Favorite</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm border border-border bg-muted" />
-            <span className="font-medium text-muted-foreground">Images may differ from actual presentation</span>
-          </div>
-        </div>
+        {/* Legend removed to match latest design request */}
       </main>
     </div>
   );
