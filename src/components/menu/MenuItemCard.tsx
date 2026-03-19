@@ -127,7 +127,7 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
                     {item.description}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       {item.category}
                     </span>
                     <span className="text-xs text-muted-foreground">
@@ -141,6 +141,7 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
                     src={item.imageUrl}
                     alt={item.name}
                     fill
+                    sizes="(max-width: 640px) 9rem, (max-width: 768px) 11rem, 13rem"
                     className="object-cover"
                   />
                   {item.popular && (
@@ -149,7 +150,7 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
                     </Badge>
                   )}
                   <div className="absolute bottom-3 right-3">
-                    <div className="w-10 h-10 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-full bg-background/95 border border-border shadow-md flex items-center justify-center">
                       <Plus className="w-5 h-5 text-foreground" />
                     </div>
                   </div>
@@ -164,6 +165,7 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
                 src={item.imageUrl} 
                 alt={item.name} 
                 fill 
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               {item.popular && (
@@ -184,8 +186,8 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
               </div>
               
               <div className="flex items-center justify-between mt-auto">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
-                <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
+                <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn">
                   ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
                 </Button>
               </div>
@@ -196,7 +198,13 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
       
       <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
         <div className="relative h-48 sm:h-64">
-          <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            sizes="(max-width: 640px) 100vw, 640px"
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-6 left-6 text-white space-y-1">
             <DialogTitle className="text-3xl font-headline font-bold">
@@ -230,7 +238,7 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
                       return (
                       <div
                         key={label}
-                        className="flex items-center space-x-2 border border-border px-4 py-2 rounded-xl cursor-pointer hover:bg-muted transition-colors"
+                        className="flex items-center space-x-2 border border-border px-4 py-3 min-h-11 rounded-xl cursor-pointer hover:bg-muted transition-colors"
                       >
                         <RadioGroupItem value={label} id={`${item.id}-${variant.label}-${label}`} />
                         <Label htmlFor={`${item.id}-${variant.label}-${label}`} className="cursor-pointer font-medium">
@@ -261,13 +269,13 @@ export function MenuItemCard({ item, layout = "grid" }: { item: MenuItem; layout
           <div className="flex items-center justify-between pt-4 border-t">
             <div className="flex items-center gap-4 bg-muted rounded-full p-1 px-4">
               <button 
-                className="w-8 h-8 flex items-center justify-center font-bold text-xl disabled:opacity-30" 
+                className="w-11 h-11 flex items-center justify-center font-bold text-xl disabled:opacity-30" 
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
               > - </button>
-              <span className="w-8 text-center font-headline font-bold text-lg">{quantity}</span>
+              <span className="w-11 text-center font-headline font-bold text-lg">{quantity}</span>
               <button 
-                className="w-8 h-8 flex items-center justify-center font-bold text-xl" 
+                className="w-11 h-11 flex items-center justify-center font-bold text-xl" 
                 onClick={() => setQuantity(quantity + 1)}
               > + </button>
             </div>

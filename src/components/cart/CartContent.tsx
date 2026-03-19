@@ -45,15 +45,19 @@ export function CartContent() {
                 <div>
                   <h4 className="font-headline font-bold text-sm leading-tight">{item.name}</h4>
                   {item.selectedVariant && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">Choice: {item.selectedVariant}</p>
+                    <p className="text-xs text-primary font-medium mt-0.5 leading-relaxed">
+                      Choice: {item.selectedVariant}
+                    </p>
                   )}
                   {item.instructions && (
-                    <p className="text-[10px] text-muted-foreground italic line-clamp-1 mt-0.5">"{item.instructions}"</p>
+                    <p className="text-xs text-muted-foreground italic line-clamp-1 mt-0.5 leading-relaxed">
+                      "{item.instructions}"
+                    </p>
                   )}
                 </div>
                 <button 
                   onClick={() => removeFromCart(item.uid)}
-                  className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                  className="text-muted-foreground hover:text-destructive transition-colors h-11 w-11 flex items-center justify-center"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -66,17 +70,17 @@ export function CartContent() {
                 <div className="flex items-center gap-2 bg-muted rounded-full px-2 py-1">
                   <button 
                     onClick={() => updateQuantity(item.uid, -1)}
-                    className="p-1 hover:text-primary disabled:opacity-30"
+                    className="h-11 w-11 flex items-center justify-center hover:text-primary disabled:opacity-30"
                     disabled={item.quantity <= 1}
                   >
-                    <Minus className="w-3 h-3" />
+                    <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-4 text-center text-xs font-bold">{item.quantity}</span>
                   <button 
                     onClick={() => updateQuantity(item.uid, 1)}
-                    className="p-1 hover:text-primary"
+                    className="h-11 w-11 flex items-center justify-center hover:text-primary"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>

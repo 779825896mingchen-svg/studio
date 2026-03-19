@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Star } from 'lucide-react';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>(categories[0] ?? "Menu");
@@ -38,7 +38,7 @@ export default function MenuPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <header className="text-primary-foreground px-4 relative overflow-hidden h-[260px] md:h-[320px] flex items-center">
+      <header className="text-primary-foreground px-4 relative overflow-hidden h-[35vh] md:h-[42vh] flex items-center">
         <div className="absolute inset-0">
           <Image
             src="/imperial-menu-bg.png"
@@ -76,21 +76,18 @@ export default function MenuPage() {
         <div className="grid gap-8 md:grid-cols-12 items-start">
           {/* Mobile category selector (horizontal like DoorDash tabs) */}
           <div className="md:hidden">
-            <ScrollArea className="w-full whitespace-nowrap pb-4">
-              <div className="flex gap-2">
-                {categories.map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={activeCategory === cat ? "default" : "outline"}
-                    className={`rounded-full px-6 transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
-                    onClick={() => setActiveCategory(cat)}
-                  >
-                    {cat}
-                  </Button>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            <div className="flex flex-wrap gap-2 pb-4">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={activeCategory === cat ? "default" : "outline"}
+                  className={`rounded-full px-6 transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
+                  onClick={() => setActiveCategory(cat)}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Desktop left sidebar category column */}
@@ -102,7 +99,7 @@ export default function MenuPage() {
                     Categories
                   </p>
                 </div>
-                <ScrollArea className="h-[calc(100vh-220px)]">
+                  <ScrollArea className="h-[calc(100vh-13.75rem)]">
                   <div className="p-3 flex flex-col gap-2">
                     {categories.map((cat) => (
                       <Button
@@ -163,11 +160,14 @@ export default function MenuPage() {
         {/* Legend */}
         <div className="mt-16 p-6 bg-card rounded-2xl border border-border flex flex-wrap gap-8 items-center justify-center text-sm">
           <div className="flex items-center gap-2">
-           
+            <Star className="w-4 h-4 text-secondary fill-secondary" />
+            <span className="font-medium">Guest Favorite</span>
           </div>
           <div className="flex items-center gap-2">
-            
-            
+            <div className="w-4 h-4 rounded-sm border border-border bg-muted" />
+            <span className="font-medium text-muted-foreground">
+              Images may differ from actual presentation
+            </span>
           </div>
         </div>
       </main>

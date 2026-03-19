@@ -172,7 +172,7 @@ export default function CheckoutPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                     {cart.map((item) => (
                       <Card
                         key={item.uid}
@@ -197,16 +197,16 @@ export default function CheckoutPage() {
                                   ${(item.price * item.quantity).toFixed(2)}
                                 </span>
                               </div>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                                 ×{item.quantity} @ ${item.price.toFixed(2)} each
                               </p>
                               {item.selectedVariant && (
-                                <p className="text-[11px] text-primary font-medium mt-1">
+                                <p className="text-xs text-primary font-medium mt-1 leading-relaxed">
                                   Choice: {item.selectedVariant}
                                 </p>
                               )}
                               {item.instructions && (
-                                <p className="text-[11px] text-muted-foreground italic mt-1 line-clamp-2">
+                                <p className="text-xs text-muted-foreground italic mt-1 line-clamp-2 leading-relaxed">
                                   &ldquo;{item.instructions}&rdquo;
                                 </p>
                               )}
@@ -235,7 +235,7 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1.5">
-                        Name <span className="text-[11px] text-destructive">*</span>
+                        Name <span className="text-xs text-destructive">*</span>
                       </Label>
                       <Input
                         id="name"
@@ -246,13 +246,13 @@ export default function CheckoutPage() {
                         onBlur={() => setNameTouched(true)}
                       />
                       {!isValidName && nameTouched && (
-                        <p className="text-[11px] text-destructive">Name is required.</p>
+                        <p className="text-xs text-destructive leading-relaxed">Name is required.</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
-                        Email <span className="text-[11px] text-destructive">*</span>
+                        Email <span className="text-xs text-destructive">*</span>
                       </Label>
                       <Input
                         id="email"
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
                         onChange={(e) => setEmail(e.target.value)}
                       />
                       {!isValidEmail && email.length > 0 && (
-                        <p className="text-[11px] text-destructive">
+                        <p className="text-xs text-destructive leading-relaxed">
                           Please enter a valid email address.
                         </p>
                       )}
@@ -272,7 +272,7 @@ export default function CheckoutPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-1.5">
-                        Phone Number <span className="text-[11px] text-destructive">*</span>
+                        Phone Number <span className="text-xs text-destructive">*</span>
                         <Phone className="w-3 h-3 text-muted-foreground" />
                       </Label>
                       <Input
@@ -287,11 +287,11 @@ export default function CheckoutPage() {
                           setPhoneDigits(digitsOnly);
                         }}
                       />
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         Numbers only. We&apos;ll only call if there&apos;s an issue with your order.
                       </p>
                       {!isValidPhone && phoneDigits.length > 0 && (
-                        <p className="text-[11px] text-destructive">
+                        <p className="text-xs text-destructive leading-relaxed">
                           Please enter a 10-digit phone number.
                         </p>
                       )}
@@ -311,11 +311,11 @@ export default function CheckoutPage() {
                     <Textarea
                       id="requests"
                       placeholder="Allergies, sauce on the side, extra spice, pickup time preferences..."
-                      className="min-h-[96px] rounded-2xl resize-none"
+                      className="min-h-24 rounded-2xl resize-none"
                       value={requests}
                       onChange={(e) => setRequests(e.target.value)}
                     />
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       We&apos;ll do our best to honor every request. Some changes may affect pricing.
                     </p>
                   </div>
@@ -381,7 +381,7 @@ export default function CheckoutPage() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-xs text-muted-foreground leading-relaxed">
                               Same-day only. Times within store hours, 15-min intervals.
                             </p>
                           </div>
@@ -423,7 +423,7 @@ export default function CheckoutPage() {
                     {!isSubmitting && <ArrowRight className="w-4 h-4" />}
                   </Button>
 
-                  <p className="text-[11px] text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground text-center leading-relaxed">
                     By placing your order you agree to our house policies on substitutions, allergies, and
                     preparation time.
                   </p>

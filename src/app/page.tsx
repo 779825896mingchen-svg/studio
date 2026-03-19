@@ -128,7 +128,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="relative z-10 w-full md:w-auto bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 space-y-6 min-w-[320px]">
+          <div className="relative z-10 w-full md:w-80 bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 space-y-6">
             <div className="flex items-center gap-4">
               <MapPin className="text-secondary w-6 h-6 shrink-0" />
               <div>

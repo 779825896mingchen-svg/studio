@@ -17,12 +17,12 @@ export function Navbar() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative w-10 h-10 rounded-full overflow-hidden bg-primary">
+            <div className="relative w-11 h-11 rounded-full overflow-hidden bg-primary">
               <Image
                 src="https://img.cdn4dd.com/p/fit=contain,width=100,height=100,format=auto,quality=95/media/restaurant/cover_square/eeb136ba-d013-40ae-b212-2d2c89511c4a.png"
                 alt="Emperor's Choice"
                 fill
-                sizes="40px"
+                sizes="44px"
                 className="object-contain"
                 priority
               />
@@ -47,7 +47,7 @@ export function Navbar() {
           <div className="hidden sm:flex items-center gap-2">
             <Button
               asChild
-              className="rounded-full h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              className="rounded-full px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
             >
               <Link href="/signin" className="flex items-center gap-2">
                 <LogIn className="w-4 h-4" />
@@ -57,7 +57,7 @@ export function Navbar() {
             <Button
               asChild
               variant="secondary"
-              className="rounded-full h-9 px-4 bg-muted text-foreground hover:bg-muted/80 border border-border shadow-sm"
+              className="rounded-full px-4 bg-muted text-foreground hover:bg-muted/80 border border-border shadow-sm"
             >
               <Link href="/signup" className="flex items-center gap-2">
                 <UserPlus className="w-4 h-4" />
@@ -70,8 +70,7 @@ export function Navbar() {
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
-                className="relative rounded-full bg-[#ff3008] hover:bg-[#e22a06] px-3 py-1.5 flex items-center justify-center"
+                className="relative rounded-full bg-[#ff3008] hover:bg-[#e22a06] h-11 px-3 flex items-center justify-center"
               >
                 <div className="flex items-center gap-1 text-white">
                   <ShoppingCart className="w-4 h-4" />

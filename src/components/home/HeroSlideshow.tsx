@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type HeroSlideshowProps = {
   intervalMs?: number;
@@ -15,6 +15,7 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
   );
 
   const [idx, setIdx] = useState(0);
+  const touchStartX = useRef<number | null>(null);
 
   // If the caller already positions this container (e.g. `absolute inset-0`),
   // we shouldn't force `relative` as it can conflict with the intended layout.
@@ -28,7 +29,27 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
   }, [images.length, intervalMs]);
 
   return (
-    <div className={rootClassName}>
+    <div
+      className={rootClassName}
+      onPointerDown={(e) => {
+        if (e.pointerType !== "touch") return;
+        touchStartX.current = e.clientX;
+      }}
+      onPointerUp={(e) => {
+        if (e.pointerType !== "touch") return;
+        if (touchStartX.current === null) return;
+
+        const dx = e.clientX - touchStartX.current;
+        touchStartX.current = null;
+
+        // Swipe threshold tuned for typical finger movement.
+        if (Math.abs(dx) < 40) return;
+        setIdx((prev) => {
+          if (dx < 0) return (prev + 1) % images.length;
+          return (prev - 1 + images.length) % images.length;
+        });
+      }}
+    >
       {images.map((src, i) => (
         <Image
           key={src}
