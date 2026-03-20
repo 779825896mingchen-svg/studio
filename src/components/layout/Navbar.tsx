@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut } from 'lucide-react';
+import { signOut as nextAuthSignOut } from "next-auth/react";
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -38,11 +39,31 @@ export function Navbar() {
     let mounted = true;
     const run = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (!res.ok) return;
-        const data = (await res.json()) as { user: null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" } };
-        if (!mounted) return;
-        setUser(data.user);
+        // 1) Local auth user (phone/email signup flow)
+        const localRes = await fetch("/api/auth/me");
+        if (localRes.ok) {
+          const localData = (await localRes.json()) as { user: null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" } };
+          if (!mounted) return;
+          if (localData.user) {
+            setUser(localData.user);
+            return;
+          }
+        }
+
+        // 2) Google session via Auth.js
+        const sessionRes = await fetch("/api/auth/session");
+        if (sessionRes.ok) {
+          const sessionData = (await sessionRes.json()) as { user?: { name?: string; email?: string } };
+          if (!mounted) return;
+          if (sessionData?.user?.email) {
+            setUser({
+              id: `google:${sessionData.user.email}`,
+              name: sessionData.user.name || "Google User",
+              email: sessionData.user.email,
+              role: "customer",
+            });
+          }
+        }
       } catch {
         // Ignore - treat as logged out
       } finally {
@@ -58,7 +79,8 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/signout", { method: "POST" });
+      await fetch("/api/auth/local-signout", { method: "POST" });
+      await nextAuthSignOut({ redirect: false });
     } finally {
       setUser(null);
       router.push("/menu");

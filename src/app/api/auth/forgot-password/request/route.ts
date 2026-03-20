@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
+import { Resend } from "resend";
 import {
   createResetCode,
   ensureAdminAccount,
@@ -50,12 +51,39 @@ export async function POST(req: NextRequest) {
     });
     await saveResetCodes(codes);
 
-    await storeResetDelivery({
-      channel,
-      destination: channel === "phone" ? account.phone : account.email,
-      code,
-      accountName: account.name,
-    });
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const emailFrom = process.env.EMAIL_FROM;
+
+    if (channel === "email" && resendApiKey && emailFrom) {
+      const resend = new Resend(resendApiKey);
+      await resend.emails.send({
+        from: emailFrom,
+        to: account.email,
+        subject: "Reset your Emperor's Choice password",
+        html: `<!doctype html>
+<html>
+  <body style="font-family: Inter, Arial, sans-serif; background:#f6f6f7; padding:24px;">
+    <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #ececf0;">
+      <div style="background:#f97316; color:#fff; padding:20px 24px; font-weight:700; font-size:20px;">Emperor's Choice</div>
+      <div style="padding:24px;">
+        <p style="margin:0 0 12px 0; color:#111827;">Hi ${account.name || "there"},</p>
+        <p style="margin:0 0 16px 0; color:#374151;">Use this verification code to reset your password:</p>
+        <div style="font-size:32px; font-weight:800; letter-spacing:6px; color:#f97316; margin:8px 0 16px 0;">${code}</div>
+        <p style="margin:0; color:#6b7280;">This code expires in ${ttlMinutes} minutes.</p>
+      </div>
+    </div>
+  </body>
+</html>`,
+      });
+    } else {
+      // Fallback local delivery file when Resend is not configured.
+      await storeResetDelivery({
+        channel,
+        destination: channel === "phone" ? account.phone : account.email,
+        code,
+        accountName: account.name,
+      });
+    }
 
     return NextResponse.json({ ok: true, delivered: true });
   } catch {

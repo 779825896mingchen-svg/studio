@@ -148,10 +148,7 @@ export default function SignInPage() {
                 variant="outline"
                 className="w-full h-12 rounded-xl border border-input bg-background hover:bg-accent flex items-center justify-center gap-3 text-sm md:text-base font-medium"
                 onClick={() => {
-                  toast({
-                    title: "Google Sign-In UI",
-                    description: "Wire this button to Google OAuth when you’re ready.",
-                  });
+                  window.location.href = "/api/auth/signin/google";
                 }}
               >
                 <Image src="/google-g.png" alt="Google" width={18} height={18} />
