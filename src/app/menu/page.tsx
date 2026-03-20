@@ -18,20 +18,59 @@ export default function MenuPage() {
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    // Split on non-alphanumeric so inputs like "chow |" still match "chow".
+    const terms = normalizedQuery.split(/[^a-z0-9]+/i).filter(Boolean);
+
     return menuItems.filter(item => {
-      const matchesCategory = item.category === activeCategory;
-      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      // If there's no query, show the full active category.
+      if (terms.length === 0) return item.category === activeCategory;
+
+      // Query mode: show results from all categories, matching name only.
+      const haystack = item.name.toLowerCase();
+      // Match all typed terms (not just one continuous substring).
+      return terms.every((t) => haystack.includes(t));
     });
   }, [activeCategory, searchQuery]);
 
   const categoryNote = useMemo(() => {
     if (activeCategory === "Lunch Combo") {
-      return "Only available 11am–3pm Tuesday - Saturday. Includes roast pork fried rice + can soda.";
+      return (
+        <>
+          Only available{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            11am–3pm
+          </span>{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Tuesday–Saturday
+          </span>. Includes{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Roast Pork Fried Rice
+          </span>{" "}
+          and{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Can Soda
+          </span>.
+        </>
+      );
     }
     if (activeCategory === "Dinner Combo") {
-      return "Available all time. Includes roast pork fried rice + pork egg roll.";
+      return (
+        <>
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Available all day
+          </span>
+          . Includes{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Roast Pork Fried Rice
+          </span>{" "}
+          and{" "}
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+            Roast Pork Egg Roll
+          </span>
+          .
+        </>
+      );
     }
     return null;
   }, [activeCategory]);
@@ -166,7 +205,9 @@ export default function MenuPage() {
               <div className="space-y-1 min-w-0">
                 <h2 className="font-headline text-2xl font-bold break-words">{activeCategory}</h2>
                 {categoryNote && (
-                  <p className="text-sm text-muted-foreground break-words">{categoryNote}</p>
+                  <p className="text-sm text-muted-foreground break-words leading-relaxed">
+                    {categoryNote}
+                  </p>
                 )}
               </div>
               <Button

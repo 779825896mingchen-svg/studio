@@ -21,6 +21,8 @@ export type CartItem = MenuItem & {
 type CartContextValue = {
   cart: CartItem[];
   isLoaded: boolean;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
   addToCart: (
     item: MenuItem,
     quantity?: number,
@@ -42,6 +44,7 @@ const STORAGE_KEY = "emperor_cart";
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -101,6 +104,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value: CartContextValue = {
     cart,
     isLoaded,
+    isCartOpen,
+    setIsCartOpen,
     addToCart,
     removeFromCart,
     updateQuantity,

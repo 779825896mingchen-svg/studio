@@ -3,8 +3,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, LogIn, UserPlus, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
@@ -12,17 +12,24 @@ import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle 
 import { CartContent } from '@/components/cart/CartContent';
 
 export function Navbar() {
-  const { totalItems } = useCart();
+  const { totalItems, isCartOpen, setIsCartOpen } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const handleMobileNavigate = (path: string) => {
     // Close sheet first, then navigate to avoid visual jank.
+    setIsCartOpen(false);
     setMobileNavOpen(false);
     window.setTimeout(() => {
       router.push(path);
     }, 140);
   };
+
+  // Close cart sheet on route changes (e.g. when moving to `/checkout`).
+  useEffect(() => {
+    setIsCartOpen(false);
+  }, [pathname, setIsCartOpen]);
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
@@ -81,7 +88,7 @@ export function Navbar() {
             </Button>
           </div>
 
-          <Sheet>
+          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"

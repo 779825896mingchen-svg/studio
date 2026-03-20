@@ -1,6 +1,8 @@
 "use client"
 
-import { useToast } from "@/hooks/use-toast"
+import * as React from "react"
+import { useToast, setCartOpen } from "@/hooks/use-toast"
+import { useCart } from "@/hooks/use-cart"
 import {
   Toast,
   ToastClose,
@@ -12,6 +14,11 @@ import {
 
 export function Toaster() {
   const { toasts } = useToast()
+  const { isCartOpen } = useCart()
+
+  React.useLayoutEffect(() => {
+    setCartOpen(isCartOpen)
+  }, [isCartOpen])
 
   return (
     <ToastProvider>
@@ -29,7 +36,7 @@ export function Toaster() {
           </Toast>
         )
       })}
-      <ToastViewport />
+      <ToastViewport className={isCartOpen ? "hidden" : undefined} />
     </ToastProvider>
   )
 }

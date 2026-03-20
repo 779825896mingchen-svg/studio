@@ -9,7 +9,10 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// Visible duration before auto-dismiss starts (paused while cart sheet is open)
+const TOAST_DURATION = 4000
+// How long to keep the toast mounted after dismissal (for exit animation)
+const TOAST_REMOVE_DELAY = 500
 
 type ToasterToast = ToastProps & {
   id: string
@@ -57,6 +60,90 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+type ToastTimerMeta = {
+  remaining: number
+  startedAt?: number
+  timeout?: ReturnType<typeof setTimeout>
+}
+
+let isCartOpen = false
+const toastTimers = new Map<string, ToastTimerMeta>()
+
+function clearToastTimer(toastId: string) {
+  const meta = toastTimers.get(toastId)
+  if (meta?.timeout) clearTimeout(meta.timeout)
+  toastTimers.delete(toastId)
+}
+
+function startToastTimer(toastId: string, duration: number) {
+  const timeout = setTimeout(() => {
+    // Timer finished naturally; dismiss the toast.
+    clearToastTimer(toastId)
+    dispatch({
+      type: "DISMISS_TOAST",
+      toastId,
+    })
+  }, duration)
+
+  toastTimers.set(toastId, {
+    remaining: duration,
+    startedAt: Date.now(),
+    timeout,
+  })
+}
+
+function pauseToastTimer(toastId: string) {
+  const meta = toastTimers.get(toastId)
+  if (!meta?.timeout || !meta.startedAt) return
+
+  const elapsed = Date.now() - meta.startedAt
+  const remaining = Math.max(0, meta.remaining - elapsed)
+
+  clearTimeout(meta.timeout)
+  toastTimers.set(toastId, {
+    ...meta,
+    remaining,
+    timeout: undefined,
+    startedAt: undefined,
+  })
+}
+
+function resumeToastTimer(toastId: string) {
+  const meta = toastTimers.get(toastId)
+  if (!meta || meta.timeout) return
+
+  if (meta.remaining <= 0) {
+    clearToastTimer(toastId)
+    dispatch({ type: "DISMISS_TOAST", toastId })
+    return
+  }
+
+  startToastTimer(toastId, meta.remaining)
+}
+
+function pauseAllToastTimers() {
+  toastTimers.forEach((_meta, toastId) => pauseToastTimer(toastId))
+}
+
+function resumeAllToastTimers() {
+  toastTimers.forEach((meta, toastId) => {
+    if (!meta.timeout) resumeToastTimer(toastId)
+  })
+}
+
+// Used by `Toaster` so toasts don't visually collide with the cart `Sheet`.
+// We also pause auto-dismiss countdown while the cart is open.
+export function setCartOpen(open: boolean) {
+  if (isCartOpen === open) return
+  isCartOpen = open
+
+  if (open) {
+    pauseAllToastTimers()
+  } else {
+    resumeAllToastTimers()
+  }
+}
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
@@ -134,6 +221,23 @@ const listeners: Array<(state: State) => void> = []
 let memoryState: State = { toasts: [] }
 
 function dispatch(action: Action) {
+  if (action.type === "DISMISS_TOAST") {
+    if (action.toastId) {
+      clearToastTimer(action.toastId)
+    } else {
+      // Dismiss all toasts
+      ;[...toastTimers.keys()].forEach((id) => clearToastTimer(id))
+    }
+  }
+  if (action.type === "REMOVE_TOAST") {
+    if (action.toastId) {
+      clearToastTimer(action.toastId)
+    } else {
+      // Remove all toasts
+      ;[...toastTimers.keys()].forEach((id) => clearToastTimer(id))
+    }
+  }
+
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
     listener(memoryState)
@@ -163,6 +267,10 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  // Auto-dismiss after a few seconds (paused while the cart sheet is open).
+  toastTimers.set(id, { remaining: TOAST_DURATION })
+  if (!isCartOpen) startToastTimer(id, TOAST_DURATION)
 
   return {
     id: id,

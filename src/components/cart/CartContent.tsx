@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export function CartContent() {
-  const { cart, updateQuantity, removeFromCart, totalPrice, totalItems } = useCart();
+  const { cart, updateQuantity, removeFromCart, totalPrice, totalItems, setIsCartOpen } = useCart();
 
   if (cart.length === 0) {
     return (
@@ -18,7 +18,11 @@ export function CartContent() {
         </div>
         <h3 className="font-headline text-xl font-bold">Your basket is empty</h3>
         <p className="text-muted-foreground">Hungry? Explore our delicious Chinese menu and start adding your favorites.</p>
-        <Link href="/menu" className="w-full">
+        <Link
+          href="/menu"
+          className="w-full"
+          onClick={() => setIsCartOpen(false)}
+        >
           <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             Browse Menu
           </Button>
@@ -101,7 +105,10 @@ export function CartContent() {
           </div>
         </div>
         
-        <Link href="/checkout">
+        <Link
+          href="/checkout"
+          onClick={() => setIsCartOpen(false)}
+        >
           <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg rounded-xl shadow-lg shadow-primary/20">
             Proceed to Checkout
           </Button>
