@@ -4,19 +4,22 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { UserPlus, Mail, Key, ArrowRight } from "lucide-react";
+import { UserPlus, Mail, Key, ArrowRight, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignUpPage() {
   const { toast } = useToast();
+  const router = useRouter();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -24,35 +27,55 @@ export default function SignUpPage() {
   const [touched, setTouched] = useState({
     name: false,
     email: false,
+    phone: false,
     password: false,
     confirmPassword: false,
   });
 
   const isValidName = name.trim().length >= 2;
   const isValidEmail = /\S+@\S+\.\S+/.test(email);
+  const phoneDigits = phone.replace(/\D/g, "").slice(0, 10);
+  const isValidPhone = phoneDigits.length === 10;
   const isValidPassword = password.trim().length >= 6;
   const doPasswordsMatch = password.length > 0 && password === confirmPassword;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
 
-    setTouched({ name: true, email: true, password: true, confirmPassword: true });
+    setTouched({ name: true, email: true, phone: true, password: true, confirmPassword: true });
 
-    if (!isValidName || !isValidEmail || !isValidPassword || !doPasswordsMatch) {
+    if (!isValidName || !isValidEmail || !isValidPhone || !isValidPassword || !doPasswordsMatch) {
       toast({
         title: "Check your details",
-        description: "Make sure the name, email, and passwords are valid.",
+        description: "Make sure the name, email, phone, and passwords are valid.",
       });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // No backend auth wired yet; this is UI scaffolding consistent with the rest of the app.
-      toast({
-        title: "Sign up UI",
-        description: "This page is ready for auth integration. Wire it to Firebase/custom auth when you’re ready.",
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone: phoneDigits, password }),
       });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast({
+          variant: "destructive",
+          title: "Sign up failed",
+          description: data?.error || "Please check your details.",
+        });
+        return;
+      }
+
+      toast({
+        title: "Account created",
+        description: "Please sign in.",
+      });
+
+      router.push("/signin");
     } finally {
       setIsSubmitting(false);
     }
@@ -112,6 +135,26 @@ export default function SignUpPage() {
                   />
                   {!isValidEmail && touched.email && (
                     <p className="text-[12px] text-destructive">Please enter a valid email.</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(919) 555-1234"
+                    value={phone}
+                    autoComplete="tel"
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setTouched((p) => ({ ...p, phone: true }))}
+                    className="h-11 rounded-xl"
+                  />
+                  {!isValidPhone && touched.phone && (
+                    <p className="text-[12px] text-destructive">Please enter a valid 10-digit phone number.</p>
                   )}
                 </div>
 

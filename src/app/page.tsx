@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Clock, Star, MapPin, ExternalLink, LogIn, UserPlus } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, ExternalLink, LogIn, UserPlus } from 'lucide-react';
 import { HeroSlideshow } from '@/components/home/HeroSlideshow';
 import { LocationHoursButton } from '@/components/home/LocationHoursButton';
 
@@ -19,13 +19,13 @@ export default function Home() {
         <div className="container relative z-10 px-4 text-center space-y-8 max-w-4xl mx-auto">
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Badge className="bg-secondary text-secondary-foreground px-4 py-1 mb-4 rounded-full font-bold tracking-widest text-xs uppercase">
-              The Best Chinese Cuisine in Clayton
+              Emperor's Choice Chinese Restaurant in Clayton
             </Badge>
             <h1 className="text-5xl md:text-7xl font-headline font-bold text-white tracking-tight">
-              A Royal Feast for Your <span className="text-secondary">Senses</span>
+              Emperor's Choice <span className="text-secondary">Chinese Restaurant</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 font-body max-w-2xl mx-auto leading-relaxed">
-              Experience authentic flavors crafted with imperial tradition and modern passion.
+              We serve authentic Chinese dishes made with fresh ingredients.
             </p>
           </div>
           
@@ -46,9 +46,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12 mb-16">
             <div className="max-w-xl">
-              <h2 className="text-4xl font-headline font-bold mb-6 text-primary">Imperial Quality in Every Dish</h2>
+              <h2 className="text-4xl font-headline font-bold mb-6 text-primary">Quality in Every Dish</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                From our signature General Tso to delicate hand-made dim sum, Emperor's Choice brings the heart of Chinese tradition to Clayton. We use only the freshest ingredients and time-honored wok techniques.
+                Emperor's Choice serves classic Chinese dishes in Clayton. We use fresh ingredients and cook with wok methods.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -56,11 +56,6 @@ export default function Home() {
                 <Clock className="w-8 h-8 text-secondary mb-3" />
                 <span className="font-bold text-xl">15-20m</span>
                 <span className="text-xs text-muted-foreground">Pickup Ready</span>
-              </div>
-              <div className="flex flex-col items-center p-6 bg-background rounded-2xl shadow-sm border border-border text-center">
-                <Star className="w-8 h-8 text-secondary mb-3" />
-                <span className="font-bold text-xl">4.8 / 5</span>
-                <span className="text-xs text-muted-foreground">Google Reviews</span>
               </div>
             </div>
           </div>
@@ -77,8 +72,8 @@ export default function Home() {
                 data-ai-hint="chinese dish"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Chef's Specials</h3>
-                <p className="text-white/70 text-sm mb-4">Our most celebrated and unique creations.</p>
+                <h3 className="text-2xl font-headline font-bold text-white mb-2">Featured Dishes</h3>
+                <p className="text-white/70 text-sm mb-4">A selection of our popular menu items.</p>
                 <Link href="/menu?cat=Chef's Specials">
                   <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
                 </Link>
@@ -95,8 +90,8 @@ export default function Home() {
                 data-ai-hint="dim sum"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Dim Sum Corner</h3>
-                <p className="text-white/70 text-sm mb-4">Delicate steamed and fried delicacies.</p>
+                <h3 className="text-2xl font-headline font-bold text-white mb-2">Dim Sum</h3>
+                <p className="text-white/70 text-sm mb-4">Steamed and fried dumplings and small plates.</p>
                 <Link href="/menu?cat=Appetizers">
                   <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
                 </Link>
@@ -113,8 +108,8 @@ export default function Home() {
                 data-ai-hint="fried rice"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Wok Classics</h3>
-                <p className="text-white/70 text-sm mb-4">The ultimate comfort food essentials.</p>
+                <h3 className="text-2xl font-headline font-bold text-white mb-2">Rice and Noodles</h3>
+                <p className="text-white/70 text-sm mb-4">Noodles, rice, and wok-cooked favorites.</p>
                 <Link href="/menu?cat=Rice & Noodles">
                   <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
                 </Link>
@@ -131,9 +126,9 @@ export default function Home() {
           <div className="absolute -left-20 -top-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
           
           <div className="relative z-10 space-y-6 max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold">Can't Make it to Us?</h2>
+            <h2 className="text-4xl md:text-5xl font-headline font-bold">Delivery, Location, and Hours</h2>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              We've partnered with the best delivery services to bring Emperor's Choice right to your door.
+              Order delivery through DoorDash or UberEats.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false" target="_blank" rel="noopener noreferrer">

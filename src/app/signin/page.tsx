@@ -4,46 +4,68 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { LogIn, Mail, Key, ArrowRight } from "lucide-react";
+import { LogIn, Mail, Key, ArrowRight, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignInPage() {
   const { toast } = useToast();
+  const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailTouched, setEmailTouched] = useState(false);
+  const [identifierTouched, setIdentifierTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
 
-  const isValidEmail = /\S+@\S+\.\S+/.test(email);
+  const identifierDigits = identifier.replace(/\D/g, "").slice(0, 10);
+  const isValidEmail = /\S+@\S+\.\S+/.test(identifier.trim());
+  const isValidPhone = identifierDigits.length === 10;
+  const isValidIdentifier = isValidEmail || isValidPhone;
   const isValidPassword = password.trim().length >= 6;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setEmailTouched(true);
+    setIdentifierTouched(true);
     setPasswordTouched(true);
 
-    if (!isValidEmail || !isValidPassword) {
+    if (!isValidIdentifier || !isValidPassword) {
       toast({
         title: "Check your details",
-        description: "Enter a valid email and a password (6+ characters).",
+        description: "Enter a valid email or phone number and a password (6+ characters).",
       });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // No backend auth wired yet; this is UI scaffolding consistent with the rest of the app.
-      toast({
-        title: "Sign in UI",
-        description: "This page is ready for auth integration. Wire it to Firebase/custom auth when you’re ready.",
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, password }),
       });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast({
+          variant: "destructive",
+          title: "Sign in failed",
+          description: data?.error || "Invalid email/phone or password.",
+        });
+        return;
+      }
+
+      toast({
+        title: "Signed in",
+        description: "Welcome back.",
+      });
+
+      router.push("/account");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,22 +91,23 @@ export default function SignInPage() {
             <CardContent className="space-y-6">
               <form onSubmit={onSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                  <Label htmlFor="identifier" className="text-sm font-medium flex items-center gap-2">
                     <Mail className="w-4 h-4 text-muted-foreground" />
-                    Email
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    Email or Phone
                   </Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    autoComplete="email"
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={() => setEmailTouched(true)}
+                    id="identifier"
+                    type="text"
+                    placeholder="you@example.com or (919) 555-1234"
+                    value={identifier}
+                    autoComplete="username"
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    onBlur={() => setIdentifierTouched(true)}
                     className="h-11 rounded-xl"
                   />
-                  {!isValidEmail && emailTouched && (
-                    <p className="text-[12px] text-destructive">Please enter a valid email.</p>
+                  {!isValidIdentifier && identifierTouched && (
+                    <p className="text-[12px] text-destructive">Please enter a valid email or 10-digit phone number.</p>
                   )}
                 </div>
 
@@ -136,6 +159,12 @@ export default function SignInPage() {
               </Button>
 
               <Separator />
+
+              <p className="text-sm text-muted-foreground text-center">
+                <Link href="/forgot-password" className="text-primary hover:underline font-medium">
+                  Forgot password?
+                </Link>
+              </p>
 
               <p className="text-sm text-muted-foreground text-center">
                 New here?{" "}

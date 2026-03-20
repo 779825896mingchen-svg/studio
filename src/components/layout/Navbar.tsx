@@ -5,17 +5,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, LogIn, UserPlus, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
+import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CartContent } from '@/components/cart/CartContent';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function Navbar() {
   const { totalItems, isCartOpen, setIsCartOpen } = useCart();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" }>(null);
 
   const handleMobileNavigate = (path: string) => {
     // Close sheet first, then navigate to avoid visual jank.
@@ -30,6 +33,37 @@ export function Navbar() {
   useEffect(() => {
     setIsCartOpen(false);
   }, [pathname, setIsCartOpen]);
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) return;
+        const data = (await res.json()) as { user: null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" } };
+        if (!mounted) return;
+        setUser(data.user);
+      } catch {
+        // Ignore - treat as logged out
+      } finally {
+        if (!mounted) return;
+        setAuthLoading(false);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/signout", { method: "POST" });
+    } finally {
+      setUser(null);
+      router.push("/menu");
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
@@ -67,25 +101,64 @@ export function Navbar() {
 
           {/* Desktop sign-in/sign-up buttons (replaces the old user/account icon) */}
           <div className="hidden lg:flex items-center gap-2">
-            <Button
-              asChild
-              className="rounded-full px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-            >
-              <Link href="/signin" className="flex items-center gap-2">
-                <LogIn className="w-4 h-4" />
-                <span>Sign In</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="secondary"
-              className="rounded-full px-4 border border-border/70 bg-muted text-foreground hover:bg-muted/80"
-            >
-              <Link href="/signup" className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                <span>Sign Up</span>
-              </Link>
-            </Button>
+            {authLoading ? null : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    className="rounded-full px-3 border border-border/70 bg-muted text-foreground hover:bg-muted/80"
+                  >
+                    <User className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/account">Manage Account</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account/orders">Order History</Link>
+                  </DropdownMenuItem>
+                  {user.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/menu">Admin Menu</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      void handleSignOut();
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  className="rounded-full px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                >
+                  <Link href="/signin" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>Sign In</span>
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="rounded-full px-4 border border-border/70 bg-muted text-foreground hover:bg-muted/80"
+                >
+                  <Link href="/signup" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>Sign Up</span>
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
 
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>

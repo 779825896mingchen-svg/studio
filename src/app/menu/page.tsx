@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
+import { loadPersistedMenuItems } from '@/app/lib/menu-persistence';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Star, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,22 +17,39 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>(categories[0] ?? "Menu");
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
+  const [spicyOnly, setSpicyOnly] = useState(false);
+  const [popularOnly, setPopularOnly] = useState(false);
+  const [persistedItems, setPersistedItems] = useState<MenuItem[] | null>(null);
+
+  useEffect(() => {
+    setPersistedItems(loadPersistedMenuItems());
+  }, []);
+
+  const itemsSource = persistedItems ?? menuItems;
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     // Split on non-alphanumeric so inputs like "chow |" still match "chow".
     const terms = normalizedQuery.split(/[^a-z0-9]+/i).filter(Boolean);
 
-    return menuItems.filter(item => {
-      // If there's no query, show the full active category.
-      if (terms.length === 0) return item.category === activeCategory;
+    return itemsSource.filter((item) => {
+      // Category mode: when no query is typed, keep current behavior and only show the active category.
+      if (terms.length === 0 && item.category !== activeCategory) return false;
 
-      // Query mode: show results from all categories, matching name only.
-      const haystack = item.name.toLowerCase();
-      // Match all typed terms (not just one continuous substring).
-      return terms.every((t) => haystack.includes(t));
+      // Query mode: when a query is typed, match name across categories.
+      if (terms.length > 0) {
+        const haystack = item.name.toLowerCase();
+        const matchesAllTerms = terms.every((t) => haystack.includes(t));
+        if (!matchesAllTerms) return false;
+      }
+
+      // Optional "specific filters" toggles.
+      if (spicyOnly && (item.spiceLevel ?? 0) < 2) return false;
+      if (popularOnly && !item.popular) return false;
+
+      return true;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, itemsSource, searchQuery, spicyOnly, popularOnly]);
 
   const categoryNote = useMemo(() => {
     if (activeCategory === "Lunch Combo") {
@@ -96,9 +114,9 @@ export default function MenuPage() {
           <div className="text-[20rem] font-bold">Menu</div>
         </div>
         <div className="container mx-auto relative z-10 text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-headline font-bold">Imperial Menu</h1>
+          <h1 className="text-4xl md:text-5xl font-headline font-bold">Our Menu</h1>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto">
-            Each dish is prepared to order with authentic techniques and royal standards.
+            Each dish is prepared to order using traditional techniques.
           </p>
           
           <div className="relative max-w-lg mx-auto">
@@ -169,6 +187,27 @@ export default function MenuPage() {
                   </SheetContent>
                 </Sheet>
               </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={spicyOnly ? "secondary" : "outline"}
+                  className="rounded-full"
+                  onClick={() => setSpicyOnly((v) => !v)}
+                >
+                  Spicy
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={popularOnly ? "secondary" : "outline"}
+                  className="rounded-full"
+                  onClick={() => setPopularOnly((v) => !v)}
+                >
+                  Popular
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -195,6 +234,48 @@ export default function MenuPage() {
                     ))}
                   </div>
                 </ScrollArea>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border/60">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground">
+                      Filters
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-3 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+                      disabled={!spicyOnly && !popularOnly}
+                      onClick={() => {
+                        setSpicyOnly(false);
+                        setPopularOnly(false);
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-3 flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant={spicyOnly ? "default" : "outline"}
+                    className="justify-start rounded-xl"
+                    onClick={() => setSpicyOnly((v) => !v)}
+                  >
+                    Spicy
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={popularOnly ? "default" : "outline"}
+                    className="justify-start rounded-xl"
+                    onClick={() => setPopularOnly((v) => !v)}
+                  >
+                    Popular
+                  </Button>
+                </div>
               </div>
             </div>
           </aside>

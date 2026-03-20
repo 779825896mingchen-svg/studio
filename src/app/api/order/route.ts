@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { saveOrder } from "@/app/lib/orders/local-orders-store";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
@@ -43,17 +44,34 @@ function buildOrderItemsText(cart: OrderItem[]): string {
 }
 
 export async function POST(request: NextRequest) {
-  if (!DISCORD_WEBHOOK_URL) {
-    console.error("DISCORD_WEBHOOK_URL is not set. Add it to .env.local (see .env.example).");
-    return NextResponse.json(
-      { error: "Order notifications are not configured" },
-      { status: 503 }
-    );
-  }
-
   try {
     const body = (await request.json()) as OrderPayload;
     const { name, email, phone, requests, scheduledFor, cart, totalPrice, tax, totalWithTax } = body;
+
+    // Persist order locally so the user can view order history without any external database.
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
+    await saveOrder({
+      id: orderId,
+      name: name || "Guest",
+      email: email || "unknown",
+      phone: phone || "",
+      requests: requests || "",
+      scheduledFor: scheduledFor ?? null,
+      cart: cart.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        instructions: item.instructions,
+        // checkout currently sends selectedSpice/selectedVariant, but this API payload already includes `selectedSpice` and `selectedVariant`
+        selectedSpice: item.selectedSpice,
+        selectedVariant: item.selectedVariant,
+      })),
+      totalPrice,
+      tax,
+      totalWithTax,
+      status: "Received",
+      createdAt: new Date().toISOString(),
+    });
 
     const orderItemsText = buildOrderItemsText(cart);
     const formattedPhone =
@@ -63,12 +81,14 @@ export async function POST(request: NextRequest) {
 
     const scheduledLabel = scheduledFor
       ? `**Scheduled pickup:** ${new Date(scheduledFor).toLocaleString(undefined, {
+          timeZone: "America/New_York",
           weekday: "short",
           month: "short",
           day: "numeric",
           year: "numeric",
           hour: "numeric",
           minute: "2-digit",
+          timeZoneName: "short",
         })}`
       : "**Pick up:** ASAP";
 
@@ -119,19 +139,23 @@ export async function POST(request: NextRequest) {
       ],
     };
 
-    const res = await fetch(DISCORD_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        const res = await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Discord webhook error:", res.status, errText);
-      return NextResponse.json(
-        { error: "Failed to send order to Discord", details: errText },
-        { status: 502 }
-      );
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("Discord webhook error:", res.status, errText);
+          // Still return ok because we successfully saved the order locally.
+        }
+      } catch (discordError) {
+        console.error("Discord webhook request failed:", discordError);
+        // Non-blocking by design: order placement should succeed even if Discord is down.
+      }
     }
 
     return NextResponse.json({ ok: true });
