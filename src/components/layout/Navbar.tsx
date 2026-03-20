@@ -3,14 +3,26 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, LogIn, UserPlus, Menu as MenuIcon, Phone, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CartContent } from '@/components/cart/CartContent';
 
 export function Navbar() {
   const { totalItems } = useCart();
+  const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const handleMobileNavigate = (path: string) => {
+    // Close sheet first, then navigate to avoid visual jank.
+    setMobileNavOpen(false);
+    window.setTimeout(() => {
+      router.push(path);
+    }, 140);
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
@@ -95,20 +107,39 @@ export function Navbar() {
           </Sheet>
 
           <div className="md:hidden">
-            <Sheet>
+            <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <MenuIcon className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left">
-                <SheetHeader>
+              <SheetContent side="left" className="p-0 overflow-hidden flex flex-col">
+                <div className="p-6 border-b">
                   <SheetTitle className="text-left font-headline">Navigation</SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col gap-4 mt-8">
-                  <Link href="/menu" className="text-lg font-medium hover:text-primary">Menu</Link>
-                  <Link href="/info" className="text-lg font-medium hover:text-primary">Restaurant Info</Link>
-                  <Link href="/delivery" className="text-lg font-medium hover:text-primary">Delivery Services</Link>
+                </div>
+
+                <div className="flex flex-col gap-4 mt-8 px-6 pb-8">
+                  <button
+                    type="button"
+                    className="text-left text-lg font-medium hover:text-primary"
+                    onClick={() => handleMobileNavigate('/home')}
+                  >
+                    Home
+                  </button>
+                  <button
+                    type="button"
+                    className="text-left text-lg font-medium hover:text-primary"
+                    onClick={() => handleMobileNavigate('/menu')}
+                  >
+                    Menu
+                  </button>
+                  <button
+                    type="button"
+                    className="text-left text-lg font-medium hover:text-primary"
+                    onClick={() => handleMobileNavigate('/info')}
+                  >
+                    Restaurant Info
+                  </button>
                 </div>
               </SheetContent>
             </Sheet>

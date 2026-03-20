@@ -112,8 +112,9 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
-          <div className="relative h-48 overflow-hidden">
+        <Card className="w-full min-w-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
+          {/* Mobile: shorter media block so the whole card fits more comfortably */}
+          <div className="relative h-36 sm:h-48 overflow-hidden">
             <Image 
               src={item.imageUrl} 
               alt={item.name} 
@@ -129,9 +130,11 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
             )}
           </div>
           <CardContent className="p-4 flex-1 flex flex-col justify-between">
-            <div>
+            <div className="min-w-0">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-headline font-bold text-lg group-hover:text-primary transition-colors">{displayName}</h3>
+                <h3 className="min-w-0 pr-2 break-words font-headline font-bold text-base sm:text-lg leading-tight group-hover:text-primary transition-colors">
+                  {displayName}
+                </h3>
                 <span className="font-bold text-primary">${item.price.toFixed(2)}</span>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic font-body">

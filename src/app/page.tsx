@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clock, Star, MapPin, ExternalLink, LogIn, UserPlus } from 'lucide-react';
 import { HeroSlideshow } from '@/components/home/HeroSlideshow';
+import { LocationHoursButton } from '@/components/home/LocationHoursButton';
 
 export default function Home() {
   return (
@@ -35,11 +36,7 @@ export default function Home() {
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/info">
-              <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-md text-white border-white/20 hover:bg-white/20 px-8 py-7 text-xl rounded-xl">
-                Location & Hours
-              </Button>
-            </Link>
+            <LocationHoursButton />
           </div>
         </div>
       </section>
@@ -128,7 +125,7 @@ export default function Home() {
       </section>
 
       {/* 外卖 和 地址 和 营业时间 */}
-      <section className="py-24 container mx-auto px-4">
+      <section id="location-hours" className="py-24 container mx-auto px-4 scroll-mt-24">
         <div className="bg-primary text-primary-foreground rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative">
           <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -left-20 -top-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
@@ -152,7 +149,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="relative z-10 w-full md:w-auto bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 space-y-6 min-w-[320px]">
+          <div className="relative z-10 w-full md:w-auto max-w-full bg-white/10 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 space-y-6">
             <div className="flex items-center gap-4">
               <MapPin className="text-secondary w-6 h-6 shrink-0" />
               <div>

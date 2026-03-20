@@ -7,13 +7,15 @@ import { Navbar } from '@/components/layout/Navbar';
 import { categories, menuItems, MenuItem } from '@/app/lib/menu-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Star } from 'lucide-react';
+import { Search, Star, ChevronDown } from 'lucide-react';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>(categories[0] ?? "Menu");
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     return menuItems.filter(item => {
@@ -74,23 +76,61 @@ export default function MenuPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-8 md:grid-cols-12 items-start">
-          {/* Mobile category selector (horizontal like DoorDash tabs) */}
+          {/* Mobile category selector */}
           <div className="md:hidden">
-            <ScrollArea className="w-full whitespace-nowrap pb-4">
-              <div className="flex gap-2">
-                {categories.map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={activeCategory === cat ? "default" : "outline"}
-                    className={`rounded-full px-6 transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "border-primary/20 hover:bg-primary/5"}`}
-                    onClick={() => setActiveCategory(cat)}
-                  >
-                    {cat}
-                  </Button>
-                ))}
+            <div className="rounded-2xl border border-border bg-card p-3 mb-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
+                    Category
+                  </p>
+                  <p className="font-semibold truncate">{activeCategory}</p>
+                </div>
+
+                <Sheet open={mobileCategoryOpen} onOpenChange={setMobileCategoryOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="rounded-full px-4 shrink-0">
+                      Browse
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </SheetTrigger>
+
+                  <SheetContent side="bottom" className="rounded-t-3xl">
+                    <SheetHeader className="text-center pb-4 border-b">
+                      <SheetTitle className="font-headline text-2xl">Menu Categories</SheetTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Pick a section to jump directly to your favorites.
+                      </p>
+                    </SheetHeader>
+
+                    <div className="pt-4 max-h-[65vh] overflow-y-auto space-y-2">
+                      {categories.map((cat) => (
+                        <SheetClose asChild key={cat}>
+                          <button
+                            type="button"
+                            className={[
+                              "w-full text-left rounded-xl px-4 py-3 border transition-colors",
+                              activeCategory === cat
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background border-border hover:bg-muted",
+                            ].join(" ")}
+                            onClick={() => setActiveCategory(cat)}
+                          >
+                            {cat}
+                          </button>
+                        </SheetClose>
+                      ))}
+                    </div>
+
+                    <SheetClose asChild>
+                      <Button variant="outline" className="w-full mt-4 rounded-xl">
+                        Dismiss
+                      </Button>
+                    </SheetClose>
+                  </SheetContent>
+                </Sheet>
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Desktop left sidebar category column */}
@@ -122,16 +162,16 @@ export default function MenuPage() {
 
           {/* Right content */}
           <section className="md:col-span-9">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <h2 className="font-headline text-2xl font-bold">{activeCategory}</h2>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="space-y-1 min-w-0">
+                <h2 className="font-headline text-2xl font-bold break-words">{activeCategory}</h2>
                 {categoryNote && (
-                  <p className="text-sm text-muted-foreground">{categoryNote}</p>
+                  <p className="text-sm text-muted-foreground break-words">{categoryNote}</p>
                 )}
               </div>
               <Button
                 variant="outline"
-                className="rounded-xl"
+                className="rounded-xl w-full sm:w-auto"
                 onClick={() => {
                   setSearchQuery("");
                 }}
@@ -141,7 +181,8 @@ export default function MenuPage() {
             </div>
 
             {/* Menu Items Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            {/* Mobile-first layout: single column on small phones to prevent overflow */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
                   <MenuItemCard key={item.id} item={item} />
