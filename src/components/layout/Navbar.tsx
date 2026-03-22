@@ -12,6 +12,24 @@ import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CartContent } from '@/components/cart/CartContent';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+export type NavbarUser = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role?: "admin" | "customer";
+  image?: string | null;
+  provider?: "local" | "google";
+};
+
+function initialsFromName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (parts.length === 1 && parts[0].length >= 2) return parts[0].slice(0, 2).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || "?";
+}
 
 export function Navbar() {
   const { totalItems, isCartOpen, setIsCartOpen } = useCart();
@@ -19,10 +37,9 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" }>(null);
+  const [user, setUser] = useState<NavbarUser | null>(null);
 
   const handleMobileNavigate = (path: string) => {
-    // Close sheet first, then navigate to avoid visual jank.
     setIsCartOpen(false);
     setMobileNavOpen(false);
     window.setTimeout(() => {
@@ -30,7 +47,6 @@ export function Navbar() {
     }, 140);
   };
 
-  // Close cart sheet on route changes (e.g. when moving to `/checkout`).
   useEffect(() => {
     setIsCartOpen(false);
   }, [pathname, setIsCartOpen]);
@@ -38,44 +54,23 @@ export function Navbar() {
   useEffect(() => {
     let mounted = true;
     const run = async () => {
+      setAuthLoading(true);
       try {
-        // 1) Local auth user (phone/email signup flow)
-        const localRes = await fetch("/api/auth/me");
-        if (localRes.ok) {
-          const localData = (await localRes.json()) as { user: null | { id: string; name: string; email: string; phone?: string; role?: "admin" | "customer" } };
-          if (!mounted) return;
-          if (localData.user) {
-            setUser(localData.user);
-            return;
-          }
-        }
-
-        // 2) Google session via Auth.js
-        const sessionRes = await fetch("/api/auth/session");
-        if (sessionRes.ok) {
-          const sessionData = (await sessionRes.json()) as { user?: { name?: string; email?: string } };
-          if (!mounted) return;
-          if (sessionData?.user?.email) {
-            setUser({
-              id: `google:${sessionData.user.email}`,
-              name: sessionData.user.name || "Google User",
-              email: sessionData.user.email,
-              role: "customer",
-            });
-          }
-        }
-      } catch {
-        // Ignore - treat as logged out
-      } finally {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = (await res.json()) as { user: NavbarUser | null };
         if (!mounted) return;
-        setAuthLoading(false);
+        setUser(data.user ?? null);
+      } catch {
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setAuthLoading(false);
       }
     };
-    run();
+    void run();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -121,19 +116,31 @@ export function Navbar() {
             <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3"/> 10125 US-70 BUS, Clayton, NC 27520</span>
           </div>
 
-          {/* Desktop sign-in/sign-up buttons (replaces the old user/account icon) */}
           <div className="hidden lg:flex items-center gap-2">
             {authLoading ? null : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="secondary"
-                    className="rounded-full px-3 border border-border/70 bg-muted text-foreground hover:bg-muted/80"
+                    className="rounded-full px-1.5 h-9 w-9 p-0 border border-border/70 bg-muted text-foreground hover:bg-muted/80 overflow-hidden"
+                    aria-label="Account menu"
                   >
-                    <User className="w-4 h-4" />
+                    <Avatar className="h-8 w-8">
+                      {user.image ? (
+                        <AvatarImage src={user.image} alt="" className="object-cover" />
+                      ) : null}
+                      <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
+                        {initialsFromName(user.name || user.email || "?")}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5 text-sm">
+                    <p className="font-semibold truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/account">Manage Account</Link>
                   </DropdownMenuItem>
@@ -242,6 +249,35 @@ export function Navbar() {
                   >
                     Restaurant Info
                   </button>
+                  {user ? (
+                    <>
+                      <button
+                        type="button"
+                        className="text-left text-lg font-medium hover:text-primary"
+                        onClick={() => handleMobileNavigate('/account')}
+                      >
+                        Account
+                      </button>
+                      <button
+                        type="button"
+                        className="text-left text-lg font-medium text-destructive"
+                        onClick={() => {
+                          setMobileNavOpen(false);
+                          void handleSignOut();
+                        }}
+                      >
+                        Log out
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-left text-lg font-medium hover:text-primary"
+                      onClick={() => handleMobileNavigate('/signin')}
+                    >
+                      Sign In
+                    </button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveOrder } from "@/app/lib/orders/local-orders-store";
+import { insertCskStoreOrder } from "@/app/lib/orders/store-sql-order";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
@@ -48,6 +49,12 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as OrderPayload;
     const { name, email, phone, requests, scheduledFor, cart, totalPrice, tax, totalWithTax } = body;
 
+    const forwarded = request.headers.get("x-forwarded-for");
+    const clientIp =
+      forwarded?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      undefined;
+
     // Persist order locally so the user can view order history without any external database.
     const orderId = `ORD-${Date.now()}-${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
     await saveOrder({
@@ -72,6 +79,22 @@ export async function POST(request: NextRequest) {
       status: "Received",
       createdAt: new Date().toISOString(),
     });
+
+    const sqlResult = await insertCskStoreOrder({
+      name: name || "Guest",
+      email: email || "",
+      phone: phone || "",
+      requests: requests || "",
+      scheduledFor: scheduledFor ?? null,
+      cart,
+      totalPrice,
+      tax,
+      totalWithTax,
+      clientIp,
+    });
+    if (!sqlResult.ok && !sqlResult.skipped) {
+      console.error("Store DB insert failed (order still saved locally):", sqlResult.error);
+    }
 
     const orderItemsText = buildOrderItemsText(cart);
     const formattedPhone =
