@@ -28,7 +28,7 @@ Run **`bin\Release\net8.0-windows\OrderWatchingDesktop.exe`** (keep **`appsettin
 
 ### UI
 
-**Emperor's POS (light)** — warm off-white **`#F7F3EE`**, white cards, **orange** accent **`#FF8A18`**, **Segoe UI**. **Sidebar:** **Orders** title, store card, **Live orders** / **History** tabs, **Refresh**, footer stats. **Live:** stacked live order cards (collapse/expand) + rich **Order details** panel. **History:** search + status / date range / sort + **Filter**, wide history cards, pagination, same detail panel. Styling is **custom GDI+** (rounded cards, soft shadows). Set **`OrderWatch:UseSampleData`** to **`true`** to run without SQL (demo dataset + pagination). `RowLimit` still caps SQL `TOP N` per query.
+**Emperor's POS (light)** — warm off-white **`#F7F3EE`**, white cards, **orange** accent **`#FF8A18`**, **Segoe UI**. **Sidebar:** **Orders** title, store card, **Live orders** / **History**, **Refresh**, footer stats. **Live:** stacked live order cards (collapse/expand) + rich **Order details** panel. **History:** search + status / date range / sort + **Filter**, wide history cards, pagination, same detail panel. Styling is **custom GDI+** (rounded cards, soft shadows). Set **`OrderWatch:UseSampleData`** to **`true`** to run without SQL (demo dataset + pagination). `RowLimit` still caps SQL `TOP N` per query.
 
 ## Configure
 

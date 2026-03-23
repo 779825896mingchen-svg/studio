@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrderWatchingDesktop")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+114c76d198221a22fd1e1699c36501d63b4c6913")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98c35af31466728a0e71a0fbb6524fffb2bfbdec")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrderWatchingDesktop")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrderWatchingDesktop")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

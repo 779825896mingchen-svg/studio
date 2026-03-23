@@ -88,3 +88,4 @@ C:\Users\video\AppData\Local\Temp\owbuild-refui2\OrderWatchingDesktop.deps.json
 C:\Users\video\AppData\Local\Temp\owbuild-refui2\OrderWatchingDesktop.runtimeconfig.json
 C:\Users\video\AppData\Local\Temp\owbuild-refui2\OrderWatchingDesktop.dll
 C:\Users\video\AppData\Local\Temp\owbuild-refui2\OrderWatchingDesktop.pdb
+C:\Users\video\Documents\GitHub\studio\tools\OrderWatchingDesktop\bin\Release\net8.0-windows\OrderWatchingDesktop.exe

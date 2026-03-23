@@ -9,6 +9,7 @@ internal sealed class LiveOrderCardControl : Control
 {
     private bool _expanded = true;
     private bool _selected;
+    private bool _hover;
 
     public int OrderId { get; }
 
@@ -97,6 +98,20 @@ internal sealed class LiveOrderCardControl : Control
         UpdateHeight();
     }
 
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        _hover = true;
+        Invalidate();
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _hover = false;
+        Invalidate();
+    }
+
     private void UpdateHeight()
     {
         Height = _expanded ? 248 : 96;
@@ -128,22 +143,44 @@ internal sealed class LiveOrderCardControl : Control
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
         var card = CardRect();
-        EmperorDrawing.DrawCardShadow(g, card, Radius);
-
-        using (var b = new SolidBrush(EmperorPosTheme.CardWhite))
-            EmperorDrawing.FillRounded(g, b, card, Radius);
-
-        if (_selected)
+        var s = g.Save();
+        try
         {
-            using var glow = new Pen(Color.FromArgb(220, EmperorPosTheme.OrangePrimary), 2.5f);
-            EmperorDrawing.DrawRounded(g, glow, Rectangle.Inflate(card, -1, -1), Radius - 1);
-        }
-        else
-        {
-            using var border = new Pen(EmperorPosTheme.BorderWarm, 1f);
-            EmperorDrawing.DrawRounded(g, border, card, Radius);
-        }
+            var cx = card.X + card.Width / 2f;
+            var cy = card.Y + card.Height / 2f;
+            if (_hover)
+            {
+                g.TranslateTransform(cx, cy);
+                g.ScaleTransform(1.02f, 1.02f);
+                g.TranslateTransform(-cx, -cy);
+            }
 
+            EmperorDrawing.DrawCardShadow(g, card, Radius, _hover);
+
+            using (var b = new SolidBrush(EmperorPosTheme.CardWhite))
+                EmperorDrawing.FillRounded(g, b, card, Radius);
+
+            if (_selected)
+            {
+                using var glow = new Pen(Color.FromArgb(220, EmperorPosTheme.OrangePrimary), 2.5f);
+                EmperorDrawing.DrawRounded(g, glow, Rectangle.Inflate(card, -1, -1), Radius - 1);
+            }
+            else
+            {
+                using var border = new Pen(EmperorPosTheme.BorderWarm, 1f);
+                EmperorDrawing.DrawRounded(g, border, card, Radius);
+            }
+
+            PaintCardBody(g, card);
+        }
+        finally
+        {
+            g.Restore(s);
+        }
+    }
+
+    private void PaintCardBody(Graphics g, Rectangle card)
+    {
         var arrowR = new Rectangle(card.X + Pad, card.Y + Pad, ArrowBox, ArrowBox);
         using (var ab = new SolidBrush(EmperorPosTheme.InputBg))
             EmperorDrawing.FillRounded(g, ab, arrowR, 8);
@@ -161,7 +198,7 @@ internal sealed class LiveOrderCardControl : Control
             TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 
         var szAmt = TextRenderer.MeasureText(_total, sAmt);
-        TextRenderer.DrawText(g, _total, sAmt, new Point(xRight - szAmt.Width, y - 2), EmperorPosTheme.TextPrimary);
+        TextRenderer.DrawText(g, _total, sAmt, new Point(xRight - szAmt.Width, y - 2), EmperorPosTheme.OrangePrimary);
 
         var pillW = TextRenderer.MeasureText(_status, sStatus).Width + 18;
         var pillR = new Rectangle(xRight - pillW, y + 26, pillW, 22);
@@ -198,3 +235,4 @@ internal sealed class LiveOrderCardControl : Control
             TextFormatFlags.Left | TextFormatFlags.WordBreak);
     }
 }
+

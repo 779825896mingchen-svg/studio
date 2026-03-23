@@ -78,7 +78,7 @@ internal sealed class LiveOrdersPageControl : UserControl
             RowCount = 2,
             BackColor = EmperorPosTheme.BgMain,
         };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 56f));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64f));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
         root.Controls.Add(header, 0, 0);
         root.Controls.Add(_split, 0, 1);
@@ -100,27 +100,27 @@ internal sealed class LiveOrdersPageControl : UserControl
         var title = new Label
         {
             Text = "Live Orders",
-            Font = EmperorPosTheme.FontSemi(18f),
+            Font = EmperorPosTheme.FontSemi(28f),
             ForeColor = EmperorPosTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(4, 4),
+            Location = new Point(4, 2),
         };
         var live = new Label
         {
             Text = "Live",
-            Font = EmperorPosTheme.FontSemi(8.75f),
+            Font = EmperorPosTheme.FontSemi(10f),
             ForeColor = Color.White,
             BackColor = EmperorPosTheme.OrangePrimary,
             AutoSize = false,
             TextAlign = ContentAlignment.MiddleCenter,
-            Size = new Size(52, 24),
+            Size = new Size(64, 30),
             Padding = new Padding(0),
         };
-        using var path = EmperorDrawing.RoundedRect(new Rectangle(0, 0, live.Width - 1, live.Height - 1), 10);
+        using var path = EmperorDrawing.RoundedRect(new Rectangle(0, 0, live.Width - 1, live.Height - 1), 12);
         live.Region = new Region(path);
         p.Controls.Add(title);
         p.Controls.Add(live);
-        p.Resize += (_, _) => { live.Left = p.ClientSize.Width - live.Width - 8; live.Top = 10; };
+        p.Resize += (_, _) => { live.Left = p.ClientSize.Width - live.Width - 8; live.Top = 8; };
         return p;
     }
 

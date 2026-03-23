@@ -12,14 +12,13 @@ internal sealed class HistoryOrdersPageControl : UserControl
     private readonly Action<string> _setSidebarStats;
 
     private readonly TextBox _search = new();
-    private readonly ComboBox _status = new();
-    private readonly ComboBox _dateRange = new();
-    private readonly ComboBox _sort = new();
+    private readonly System.Windows.Forms.Timer _searchDebounce = new() { Interval = 280 };
+    private readonly RoundedDropDownPicker _status = new();
+    private readonly RoundedDropDownPicker _dateRange = new();
+    private readonly RoundedDropDownPicker _sort = new();
     private readonly Panel _toolbarChrome = new();
-    private readonly SplitContainer _split;
     private readonly Panel _scrollHost = new();
     private readonly FlowLayoutPanel _flow = new();
-    private readonly EmperorOrderDetailPanel _detail = new();
     private readonly PaginationControl _pager = new();
 
     private DataTable? _loadedRaw;
@@ -38,14 +37,14 @@ internal sealed class HistoryOrdersPageControl : UserControl
         var header = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 52,
+            Height = 56,
             BackColor = EmperorPosTheme.BgMain,
-            Padding = new Padding(24, 8, 24, 4),
+            Padding = new Padding(24, 10, 24, 4),
         };
         header.Controls.Add(new Label
         {
             Text = "Order History",
-            Font = EmperorPosTheme.FontSemi(18f),
+            Font = EmperorPosTheme.FontSemi(28f),
             ForeColor = EmperorPosTheme.TextPrimary,
             AutoSize = true,
             Location = new Point(4, 6),
@@ -53,17 +52,12 @@ internal sealed class HistoryOrdersPageControl : UserControl
 
         BuildToolbar();
 
-        _split = new SplitContainer
+        _searchDebounce.Tick += (_, _) =>
         {
-            Dock = DockStyle.Fill,
-            Orientation = Orientation.Vertical,
-            SplitterWidth = 8,
-            BackColor = EmperorPosTheme.BgMain,
-            Panel1MinSize = 40,
-            Panel2MinSize = 40,
+            _searchDebounce.Stop();
+            if (_loadedRaw != null)
+                ApplyFiltersOnly();
         };
-        _split.Panel1.BackColor = EmperorPosTheme.BgMain;
-        _split.Panel2.BackColor = EmperorPosTheme.BgMain;
 
         var listShell = new TableLayoutPanel
         {
@@ -73,10 +67,10 @@ internal sealed class HistoryOrdersPageControl : UserControl
             BackColor = EmperorPosTheme.BgMain,
         };
         listShell.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-        listShell.RowStyles.Add(new RowStyle(SizeType.Absolute, 56f));
+        listShell.RowStyles.Add(new RowStyle(SizeType.Absolute, 64f));
 
         _scrollHost.Dock = DockStyle.Fill;
-        _scrollHost.Padding = new Padding(20, 8, 10, 8);
+        _scrollHost.Padding = new Padding(20, 8, 20, 8);
         _scrollHost.AutoScroll = true;
         _scrollHost.BackColor = EmperorPosTheme.BgMain;
         _flow.Dock = DockStyle.Top;
@@ -94,10 +88,6 @@ internal sealed class HistoryOrdersPageControl : UserControl
         listShell.Controls.Add(_scrollHost, 0, 0);
         listShell.Controls.Add(_pager, 0, 1);
 
-        _split.Panel1.Controls.Add(listShell);
-        _detail.Dock = DockStyle.Fill;
-        _split.Panel2.Controls.Add(_detail);
-
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -105,30 +95,43 @@ internal sealed class HistoryOrdersPageControl : UserControl
             RowCount = 3,
             BackColor = EmperorPosTheme.BgMain,
         };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 52f));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 108f));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 56f));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 72f));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
         root.Controls.Add(header, 0, 0);
         root.Controls.Add(_toolbarChrome, 0, 1);
-        root.Controls.Add(_split, 0, 2);
+        root.Controls.Add(listShell, 0, 2);
 
         Controls.Add(root);
+    }
 
-        Resize += (_, _) => ApplySplitter();
-        HandleCreated += (_, _) => BeginInvoke(new Action(ApplySplitter));
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _searchDebounce.Stop();
+            _searchDebounce.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     private void BuildToolbar()
     {
         _toolbarChrome.Dock = DockStyle.Fill;
-        _toolbarChrome.Padding = new Padding(20, 4, 20, 12);
+        _toolbarChrome.Padding = new Padding(20, 2, 20, 8);
         _toolbarChrome.BackColor = EmperorPosTheme.BgMain;
 
+        var outer = new Panel
+        {
+            Dock = DockStyle.Fill,
+            BackColor = EmperorPosTheme.CardWhite,
+            Padding = new Padding(1),
+        };
         var card = new RoundedCardPanel(14)
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(16, 14, 16, 14),
-            BackColor = EmperorPosTheme.CardWhite,
+            Padding = new Padding(12, 10, 12, 10),
+            BackColor = EmperorPosTheme.InputBg,
         };
 
         var row = new TableLayoutPanel
@@ -136,86 +139,105 @@ internal sealed class HistoryOrdersPageControl : UserControl
             Dock = DockStyle.Fill,
             ColumnCount = 6,
             RowCount = 1,
-            BackColor = EmperorPosTheme.CardWhite,
+            BackColor = EmperorPosTheme.InputBg,
         };
         row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36f));
-        row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42f));
-        row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118f));
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38f));
         row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128f));
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 132f));
         row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118f));
         row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 108f));
-        row.RowStyles.Add(new RowStyle(SizeType.Absolute, 54f));
+        row.RowStyles.Add(new RowStyle(SizeType.Absolute, 48f));
 
         var icon = new Label
         {
             Text = "\uD83D\uDD0D",
             Font = new Font("Segoe UI Emoji", 11f),
-            ForeColor = EmperorPosTheme.TextSecondary,
+            ForeColor = EmperorPosTheme.TextMutedRef,
             TextAlign = ContentAlignment.MiddleCenter,
             Dock = DockStyle.Fill,
         };
 
+        var searchWrap = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 2, 0, 2),
+            BackColor = EmperorPosTheme.CardWhite,
+        };
         _search.Dock = DockStyle.Fill;
         _search.Font = EmperorPosTheme.FontUi(10.25f);
         _search.BorderStyle = BorderStyle.FixedSingle;
-        _search.BackColor = EmperorPosTheme.InputBg;
+        _search.BackColor = EmperorPosTheme.CardWhite;
         _search.ForeColor = EmperorPosTheme.TextPrimary;
-        _search.PlaceholderText = "Search by web order #, customer, phone, date";
+        _search.PlaceholderText = "Search orders…";
 
-        StyleCombo(_status, ["All statuses", "Pending", "Completed", "Canceled"], 2);
-        StyleCombo(_dateRange, ["Last 7 days", "Last 30 days", "Last 90 days", "All orders"], 1);
-        StyleCombo(_sort, ["Newest first", "Oldest first", "Total: high to low", "Total: low to high"], 0);
-
-        var filterBtn = new EmperorRichButton
+        var clearSearch = new Button
         {
-            Caption = "Filter",
-            SubCaption = "Apply search & sort",
-            VisualStyle = EmperorRichButtonStyle.OutlineAccent,
-            Dock = DockStyle.Fill,
-            Margin = new Padding(8, 2, 0, 2),
-            TabIndex = 20,
+            Text = "\u2715",
+            Dock = DockStyle.Right,
+            Width = 30,
+            Height = 36,
+            FlatStyle = FlatStyle.Flat,
+            TabStop = false,
+            Font = EmperorPosTheme.FontSemi(10f),
+            ForeColor = EmperorPosTheme.TextMutedRef,
+            BackColor = EmperorPosTheme.CardWhite,
+            Visible = false,
+            Cursor = Cursors.Hand,
         };
+        clearSearch.FlatAppearance.BorderSize = 0;
+        clearSearch.Click += (_, _) =>
+        {
+            _search.Clear();
+            _searchDebounce.Stop();
+            if (_loadedRaw != null)
+                ApplyFiltersOnly();
+            clearSearch.Visible = false;
+        };
+        _search.TextChanged += (_, _) =>
+        {
+            clearSearch.Visible = _search.TextLength > 0;
+            _searchDebounce.Stop();
+            _searchDebounce.Start();
+        };
+
+        searchWrap.Controls.Add(_search);
+        searchWrap.Controls.Add(clearSearch);
+        clearSearch.BringToFront();
+
+        StylePicker(_status, ["All statuses", "Pending", "Completed", "Canceled"], 2);
+        StylePicker(_dateRange, ["All Time", "Today", "This Week", "This Month"], 0);
+        StylePicker(_sort, ["Newest first", "Oldest first"], 0);
+
+        var filterBtn = OrdersUiDrawing.CreateActionButton(
+            "Filter",
+            new Rectangle(0, 0, 100, 40),
+            EmperorPosTheme.OrangePrimary,
+            Color.White,
+            12);
+        filterBtn.Dock = DockStyle.Fill;
+        filterBtn.Margin = new Padding(8, 2, 0, 2);
+        filterBtn.TabIndex = 20;
         filterBtn.Click += async (_, _) => await ReloadFromServerAndApplyAsync();
 
         row.Controls.Add(icon, 0, 0);
-        row.Controls.Add(_search, 1, 0);
+        row.Controls.Add(searchWrap, 1, 0);
         row.Controls.Add(_status, 2, 0);
         row.Controls.Add(_dateRange, 3, 0);
         row.Controls.Add(_sort, 4, 0);
         row.Controls.Add(filterBtn, 5, 0);
 
         card.Controls.Add(row);
-        _toolbarChrome.Controls.Add(card);
+        outer.Controls.Add(card);
+        _toolbarChrome.Controls.Add(outer);
     }
 
-    private static void StyleCombo(ComboBox cb, string[] items, int selected)
+    private static void StylePicker(RoundedDropDownPicker picker, string[] items, int selected)
     {
-        cb.Dock = DockStyle.Fill;
-        cb.DropDownStyle = ComboBoxStyle.DropDownList;
-        cb.Font = EmperorPosTheme.FontUi(9.5f);
-        cb.BackColor = EmperorPosTheme.InputBg;
-        cb.ForeColor = EmperorPosTheme.TextPrimary;
-        cb.FlatStyle = FlatStyle.Flat;
-        cb.Margin = new Padding(6, 4, 6, 4);
-        cb.Items.AddRange(items);
-        cb.SelectedIndex = Math.Clamp(selected, 0, items.Length - 1);
-    }
-
-    private void ApplySplitter()
-    {
-        var total = _split.Width;
-        if (total < 80) return;
-        var splitter = _split.SplitterWidth;
-        var spare = total - splitter - 2;
-        if (spare < 2) return;
-        _split.Panel1MinSize = Math.Min(320, spare / 2);
-        _split.Panel2MinSize = Math.Min(280, spare / 2);
-        var maxDist = total - splitter - _split.Panel2MinSize;
-        var minDist = _split.Panel1MinSize;
-        if (maxDist < minDist) return;
-        var dist = Math.Clamp((int)(total * 0.55), minDist, maxDist);
-        try { _split.SplitterDistance = dist; } catch { /* */ }
-        SyncFlowWidth();
+        picker.Dock = DockStyle.Fill;
+        picker.Margin = new Padding(6, 4, 6, 4);
+        picker.SetItems(items);
+        picker.SelectedIndex = Math.Clamp(selected, 0, items.Length - 1);
     }
 
     private void SyncFlowWidth()
@@ -228,14 +250,23 @@ internal sealed class HistoryOrdersPageControl : UserControl
 
     private (DateTime From, DateTime To) GetSelectedDateRange()
     {
-        var to = DateTime.Today.AddDays(1).AddTicks(-1);
+        var today = DateTime.Today;
+        var endOfToday = today.AddDays(1).AddTicks(-1);
         return _dateRange.SelectedIndex switch
         {
-            0 => (DateTime.Today.AddDays(-7), to),
-            1 => (DateTime.Today.AddDays(-30), to),
-            2 => (DateTime.Today.AddDays(-90), to),
-            _ => (DateTime.Today.AddYears(-5), DateTime.Today.AddDays(1)),
+            0 => (today.AddYears(-5), today.AddDays(1)),
+            1 => (today, endOfToday),
+            2 => (StartOfWeek(today), endOfToday),
+            3 => (new DateTime(today.Year, today.Month, 1), endOfToday),
+            _ => (today.AddYears(-5), today.AddDays(1)),
         };
+    }
+
+    private static DateTime StartOfWeek(DateTime dt)
+    {
+        var fd = CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var diff = (7 + (dt.DayOfWeek - fd)) % 7;
+        return dt.AddDays(-diff).Date;
     }
 
     public async Task ReloadFromServerAndApplyAsync()
@@ -260,7 +291,6 @@ internal sealed class HistoryOrdersPageControl : UserControl
             _filtered = [];
             _pager.PageCount = 1;
             _flow.Controls.Clear();
-            _detail.Clear();
             _setSidebarStats("0 completed order(s)");
             return;
         }
@@ -310,13 +340,9 @@ internal sealed class HistoryOrdersPageControl : UserControl
         return _sort.SelectedIndex switch
         {
             1 => GetDate(a, "orderDate").CompareTo(GetDate(b, "orderDate")),
-            2 => Total(b).CompareTo(Total(a)),
-            3 => Total(a).CompareTo(Total(b)),
             _ => GetDate(b, "orderDate").CompareTo(GetDate(a, "orderDate")),
         };
     }
-
-    private static decimal Total(DataRow r) => GetDec(r, "subTotalAmount") + GetDec(r, "taxAmount");
 
     private void RebuildCurrentPage()
     {
@@ -344,7 +370,7 @@ internal sealed class HistoryOrdersPageControl : UserControl
                 Width = Math.Max(480, _flow.Width - 4),
             };
             card.OrderSelected += (_, id) => SelectOrder(id);
-            card.ViewDetailsClicked += (_, id) => SelectOrder(id);
+            card.ViewDetailsClicked += (_, id) => OpenOrderDetail(id);
             _flow.Controls.Add(card);
         }
 
@@ -352,22 +378,33 @@ internal sealed class HistoryOrdersPageControl : UserControl
         SyncFlowWidth();
 
         if (_filtered.Count == 0)
-        {
-            _detail.Clear();
             return;
-        }
 
         if (_selectedOrderId < 0 || !_filtered.Any(r => GetInt(r, "orderID") == _selectedOrderId))
             _selectedOrderId = GetInt(_filtered[Math.Min(start, _filtered.Count - 1)], "orderID");
 
-        SelectOrder(_selectedOrderId);
+        ApplySelectionHighlight();
     }
 
     private void SelectOrder(int orderId)
     {
         _selectedOrderId = orderId;
+        ApplySelectionHighlight();
+    }
+
+    private void ApplySelectionHighlight()
+    {
+        foreach (HistoryOrderCardControl c in _flow.Controls.OfType<HistoryOrderCardControl>())
+            c.Selected = c.OrderId == _selectedOrderId;
+    }
+
+    private void OpenOrderDetail(int orderId)
+    {
         var match = _filtered.FirstOrDefault(r => GetInt(r, "orderID") == orderId);
-        _detail.Bind(match);
+        if (match == null) return;
+        using var dlg = new OrderDetailForm();
+        dlg.Bind(match);
+        dlg.ShowDialog(this);
     }
 
     /// <summary>Re-run local filters (search/sort/status) without hitting SQL.</summary>

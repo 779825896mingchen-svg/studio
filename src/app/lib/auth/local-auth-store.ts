@@ -252,6 +252,27 @@ export async function getAccountById(id: string) {
   return accounts.find((a) => a.id === id) ?? null;
 }
 
+export async function updateAccountProfile(
+  accountId: string,
+  updates: { name?: string; phone?: string },
+) {
+  const accounts = await getAccounts();
+  const idx = accounts.findIndex((a) => a.id === accountId);
+  if (idx < 0) return false;
+  const cur = accounts[idx];
+  const next = { ...cur };
+  if (updates.name !== undefined) {
+    const t = updates.name.trim();
+    if (t) next.name = t;
+  }
+  if (updates.phone !== undefined) {
+    next.phone = normalizePhoneDigits(updates.phone);
+  }
+  accounts[idx] = next;
+  await saveAccounts(accounts);
+  return true;
+}
+
 export function createSessionToken() {
   return crypto.randomBytes(24).toString("hex");
 }

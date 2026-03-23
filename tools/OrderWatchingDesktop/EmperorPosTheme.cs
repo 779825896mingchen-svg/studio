@@ -15,6 +15,12 @@ internal static class EmperorPosTheme
     public static readonly Color OrangeBadgeGold = Color.FromArgb(0xFF, 0xD4, 0xA0);
     public static readonly Color TextPrimary = Color.FromArgb(0x1F, 0x1F, 0x1F);
     public static readonly Color TextSecondary = Color.FromArgb(0x66, 0x66, 0x66);
+    /// <summary>Reference mockup muted brown-gray.</summary>
+    public static readonly Color TextMutedRef = ColorTranslator.FromHtml("#6B6660");
+    public static readonly Color OrangeSoft = ColorTranslator.FromHtml("#FFF1E2");
+    public static readonly Color PendingSoft = ColorTranslator.FromHtml("#FFF4D8");
+    public static readonly Color PendingText = ColorTranslator.FromHtml("#C57A00");
+    public static readonly Color ViewDetailsButtonBg = ColorTranslator.FromHtml("#F8F0E8");
     public static readonly Color BorderWarm = Color.FromArgb(0xE8, 0xDE, 0xD4);
     public static readonly Color InputBg = Color.FromArgb(0xFC, 0xFA, 0xF7);
     public static readonly Color SidebarMutedBg = Color.FromArgb(0xFA, 0xF7, 0xF3);

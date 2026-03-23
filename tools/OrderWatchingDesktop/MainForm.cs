@@ -18,9 +18,9 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "Emperor's · Orders";
-        MinimumSize = new Size(1040, 640);
-        Size = new Size(1240, 800);
+        Text = "Orders";
+        MinimumSize = new Size(1400, 900);
+        Size = new Size(1550, 980);
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = EmperorPosTheme.BgMain;
         ForeColor = EmperorPosTheme.TextPrimary;
@@ -69,30 +69,9 @@ public sealed class MainForm : Form
         {
             Dock = DockStyle.Fill,
             BackColor = EmperorPosTheme.BgMain,
-            Padding = new Padding(0),
+            Padding = new Padding(0, 18, 18, 18),
         };
         _host.Controls.Add(_live);
-
-        var topBar = new Panel
-        {
-            Dock = DockStyle.Fill,
-            BackColor = EmperorPosTheme.CardWhite,
-            Padding = new Padding(28, 12, 28, 12),
-        };
-        topBar.Paint += (_, e) =>
-        {
-            using var pen = new Pen(EmperorPosTheme.BorderWarm, 1f);
-            var y = topBar.Height - 1;
-            e.Graphics.DrawLine(pen, 0, y, topBar.Width, y);
-        };
-        topBar.Controls.Add(new Label
-        {
-            Text = "Emperor's · Order management",
-            Font = EmperorPosTheme.FontSemi(11f),
-            ForeColor = EmperorPosTheme.TextSecondary,
-            AutoSize = true,
-            Location = new Point(4, 4),
-        });
 
         _footerStatus = new Label
         {
@@ -131,15 +110,13 @@ public sealed class MainForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 3,
+            RowCount = 2,
             BackColor = EmperorPosTheme.BgMain,
         };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48f));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36f));
-        layout.Controls.Add(topBar, 0, 0);
-        layout.Controls.Add(mainGrid, 0, 1);
-        layout.Controls.Add(foot, 0, 2);
+        layout.Controls.Add(mainGrid, 0, 0);
+        layout.Controls.Add(foot, 0, 1);
 
         Controls.Add(layout);
 
@@ -188,12 +165,16 @@ public sealed class MainForm : Form
             await _live.RefreshDataAsync().ConfigureAwait(true);
             _footerStatus.Text = $"Live orders · updated {DateTime.Now:T}";
         }
-        else
+        else if (page == PosPageKind.History)
         {
             _timer.Enabled = false;
             _host.Controls.Add(_history);
             await _history.ReloadFromServerAndApplyAsync().ConfigureAwait(true);
             _footerStatus.Text = $"History loaded {DateTime.Now:T}";
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(nameof(page), page, "Unknown page.");
         }
     }
 
@@ -207,10 +188,14 @@ public sealed class MainForm : Form
                 await _live.RefreshDataAsync().ConfigureAwait(true);
                 _footerStatus.Text = $"Live orders refreshed {DateTime.Now:T}";
             }
-            else
+            else if (_activePage == PosPageKind.History)
             {
                 await _history.ReloadFromServerAndApplyAsync().ConfigureAwait(true);
                 _footerStatus.Text = $"History refreshed {DateTime.Now:T}";
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(_activePage), _activePage, "Unknown page.");
             }
         }
         finally

@@ -13,9 +13,11 @@ internal sealed class EmperorOrderDetailPanel : Panel
 
     public EmperorOrderDetailPanel()
     {
+        EmperorDrawing.EnableDoubleBuffer(this);
         BackColor = EmperorPosTheme.BgMain;
         Padding = new Padding(8, 8, 16, 16);
         AutoScroll = true;
+        AutoScrollMargin = new Size(0, 12);
 
         _card = new RoundedCardPanel(16)
         {
@@ -39,7 +41,11 @@ internal sealed class EmperorOrderDetailPanel : Panel
 
         _card.Controls.Add(_flow);
         Controls.Add(_card);
-        Resize += (_, _) => SyncWidths();
+        Resize += (_, _) =>
+        {
+            SyncWidths();
+            UpdateScrollExtent();
+        };
     }
 
     private void SyncWidths()
@@ -61,9 +67,21 @@ internal sealed class EmperorOrderDetailPanel : Panel
         }
     }
 
+    /// <summary>Ensures vertical scrollbar appears when content is taller than the viewport.</summary>
+    private void UpdateScrollExtent()
+    {
+        if (_card == null || _flow == null) return;
+        var h = _flow.PreferredSize.Height + _card.Padding.Vertical;
+        _card.Height = Math.Max(1, h);
+        var cw = Math.Max(1, ClientSize.Width);
+        AutoScrollMinSize = new Size(cw, Padding.Vertical + _card.Height);
+    }
+
     public void Clear()
     {
         _flow.Controls.Clear();
+        UpdateScrollExtent();
+        AutoScrollPosition = new Point(0, 0);
     }
 
     public void Bind(DataRow? row)
@@ -116,7 +134,7 @@ internal sealed class EmperorOrderDetailPanel : Panel
         ]));
         _flow.Controls.Add(MakeSection("Pickup", [
             ("Pickup time", pickup),
-        ]));
+        ], accentValues: true));
 
         var items = OrderLineItemParser.ParseFromSpecialInstructions(spec);
         _flow.Controls.Add(MakeItemsSection(items, sub + tax));
@@ -126,7 +144,8 @@ internal sealed class EmperorOrderDetailPanel : Panel
             _flow.Controls.Add(MakeSection("Customer notes", [("", notes)]));
 
         SyncWidths();
-        _card.Height = _flow.PreferredSize.Height + _card.Padding.Vertical;
+        UpdateScrollExtent();
+        AutoScrollPosition = new Point(0, 0);
     }
 
     private static string? ExtractCustomerNotes(string? spec)
@@ -162,7 +181,7 @@ internal sealed class EmperorOrderDetailPanel : Panel
         var title = new Label
         {
             Text = "Order Details",
-            Font = EmperorPosTheme.FontSemi(16f),
+            Font = EmperorPosTheme.FontSemi(22f),
             ForeColor = EmperorPosTheme.TextPrimary,
             AutoSize = true,
             Location = new Point(0, 0),
@@ -195,9 +214,9 @@ internal sealed class EmperorOrderDetailPanel : Panel
         return p;
     }
 
-    private Panel MakeSection(string title, (string Label, string Value)[] rows)
+    private Panel MakeSection(string title, (string Label, string Value)[] rows, bool accentValues = false)
     {
-        var wrap = new DetailSectionPanel(title);
+        var wrap = new DetailSectionPanel(title, accentValues);
         foreach (var (lbl, val) in rows)
             wrap.AddRow(lbl, val);
         wrap.FinishLayout();
@@ -250,7 +269,7 @@ internal sealed class EmperorOrderDetailPanel : Panel
         {
             Text = $"Total  {orderTotal.ToString("C2", CultureInfo.CurrentCulture)}",
             Font = EmperorPosTheme.FontSemi(12f),
-            ForeColor = EmperorPosTheme.TextPrimary,
+            ForeColor = EmperorPosTheme.OrangePrimary,
             AutoSize = true,
             Margin = new Padding(0, 14, 0, 0),
         };
@@ -262,11 +281,13 @@ internal sealed class EmperorOrderDetailPanel : Panel
 internal sealed class DetailSectionPanel : Panel
 {
     private readonly string _title;
+    private readonly bool _accentValues;
     private int _y = 36;
 
-    public DetailSectionPanel(string title)
+    public DetailSectionPanel(string title, bool accentValues = false)
     {
         _title = title;
+        _accentValues = accentValues;
         BackColor = EmperorPosTheme.InputBg;
         Padding = new Padding(16, 14, 16, 14);
         Margin = new Padding(0, 0, 0, 12);
@@ -306,7 +327,7 @@ internal sealed class DetailSectionPanel : Panel
         {
             Text = value,
             Font = EmperorPosTheme.FontSemi(10f),
-            ForeColor = EmperorPosTheme.TextPrimary,
+            ForeColor = _accentValues ? EmperorPosTheme.OrangePrimary : EmperorPosTheme.TextPrimary,
             AutoSize = false,
             Width = textW,
             Location = new Point(Padding.Left, _y + 18),
@@ -385,7 +406,7 @@ internal sealed class ItemRowPanel : Panel
             {
                 Text = priceTxt,
                 Font = EmperorPosTheme.FontSemi(10f),
-                ForeColor = EmperorPosTheme.TextPrimary,
+                ForeColor = EmperorPosTheme.OrangePrimary,
                 AutoSize = true,
             };
             _priceLabel.Location = new Point(Width - _priceLabel.PreferredWidth - 20, 18);

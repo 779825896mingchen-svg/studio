@@ -38,16 +38,17 @@ internal static class EmperorDrawing
     }
 
     /// <summary>Soft drop shadow (stacked translucent rounds).</summary>
-    public static void DrawCardShadow(Graphics g, Rectangle cardBounds, int radius)
+    public static void DrawCardShadow(Graphics g, Rectangle cardBounds, int radius, bool hover = false)
     {
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        for (var i = 3; i >= 1; i--)
+        var layers = hover ? 6 : 3;
+        for (var i = layers; i >= 1; i--)
         {
-            var a = 8 + i * 4;
-            var off = i;
+            var a = hover ? 10 + i * 6 : 8 + i * 4;
+            var off = i + (hover ? 1 : 0);
             var r = Rectangle.Inflate(cardBounds, off / 2, off / 2);
             r.Offset(0, off);
-            using var b = new SolidBrush(Color.FromArgb(a, 0, 0, 0));
+            using var b = new SolidBrush(Color.FromArgb(Math.Min(80, a), 0, 0, 0));
             FillRounded(g, b, r, radius + 2);
         }
     }
