@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { useCart } from "@/hooks/use-cart";
@@ -29,6 +29,27 @@ export default function CheckoutPage() {
   const [orderTiming, setOrderTiming] = useState<"asap" | "scheduled">("asap");
   const [scheduleTime, setScheduleTime] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data: { user?: { name?: string; email?: string; phone?: string } | null }) => {
+        if (cancelled || !data?.user) return;
+        const u = data.user;
+        setName((prev) => prev.trim() || u.name?.trim() || "");
+        setEmail((prev) => prev.trim() || u.email?.trim() || "");
+        setPhoneDigits((prev) => {
+          if (prev.length > 0) return prev;
+          const digits = (u.phone || "").replace(/\D/g, "").slice(0, 10);
+          return digits;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const formattedPhone = useMemo(() => {
     const digits = phoneDigits;
@@ -105,7 +126,7 @@ export default function CheckoutPage() {
       if (scheduledFor) {
         alert("Your order is scheduled! We'll have it ready for pickup at the chosen time.");
       } else {
-        alert("Your royal order has been placed! We'll prepare your feast.");
+        alert("Your  order has been placed! We'll prepare your feast.");
       }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -129,7 +150,7 @@ export default function CheckoutPage() {
                 Emperor&apos;s Choice
               </p>
               <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tight">
-                Royal Checkout
+                 Checkout
               </h1>
               <p className="text-sm text-muted-foreground">
                 Review your basket and share your details so our kitchen can begin your feast.
@@ -419,7 +440,7 @@ export default function CheckoutPage() {
                     onClick={handlePlaceOrder}
                     disabled={!isValidName || !isValidEmail || !isValidPhone || !isScheduledValid || cart.length === 0 || isSubmitting}
                   >
-                    {isSubmitting ? "Sending order…" : "Place Royal Order"}
+                    {isSubmitting ? "Sending order…" : "Place  Order"}
                     {!isSubmitting && <ArrowRight className="w-4 h-4" />}
                   </Button>
 

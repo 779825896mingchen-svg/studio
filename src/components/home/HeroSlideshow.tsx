@@ -24,7 +24,7 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
 
   useEffect(() => {
     const t = setInterval(() => {
-      // Keep rerenders cheap by only mounting the current slide (+ previous for fade).
+      // Current + previous (fade) + next (preload); see map() below.
       setIdx((prev) => {
         setPrevIdx(prev);
         return (prev + 1) % images.length;
@@ -32,6 +32,8 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
     }, intervalMs);
     return () => clearInterval(t);
   }, [images.length, intervalMs]);
+
+  const nextIdx = (idx + 1) % images.length;
 
   return (
     <div
@@ -56,8 +58,13 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
       }}
     >
       {images.map((src, i) => {
-        const shouldRender = i === idx || i === prevIdx;
+        // Current + previous (crossfade) + next (hidden preload) so the next frame is decoded at full res.
+        const shouldRender = i === idx || i === prevIdx || i === nextIdx;
         if (!shouldRender) return null;
+
+        const isCurrent = i === idx;
+        const isPrev = prevIdx !== null && i === prevIdx && !isCurrent;
+        const zClass = isCurrent ? "z-[2]" : isPrev ? "z-[1]" : "z-0";
 
         return (
           <Image
@@ -65,15 +72,17 @@ export function HeroSlideshow({ intervalMs = 5000, className }: HeroSlideshowPro
             src={src}
             alt="Emperor's Choice featured dish"
             fill
-            // Request higher quality output; actual pixel sharpness is limited by source image resolution.
             quality={100}
-            sizes="(max-width: 768px) 100vw, 1920px"
-            loading={i === idx ? "eager" : "lazy"}
+            // Full-bleed hero: match viewport width so 1080p (and 2×) requests ~3840px from the default srcset.
+            sizes="100vw"
+            loading={i === idx || i === nextIdx ? "eager" : "lazy"}
             priority={i === idx}
             className={[
-              "object-cover brightness-[0.7]",
+              "object-cover object-center brightness-[0.7]",
+              "transform-gpu [backface-visibility:hidden]",
               "transition-opacity duration-700 ease-in-out",
-              i === idx ? "opacity-100" : "opacity-0",
+              zClass,
+              isCurrent ? "opacity-100" : "opacity-0 pointer-events-none",
             ].join(" ")}
           />
         );

@@ -274,7 +274,7 @@ export default function AccountPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 md:pt-10">
+      <main className="mx-auto max-w-6xl px-4 pb-8 pt-4 md:pt-8">
         {loading ? (
           <div className="flex min-h-[50vh] items-center justify-center gap-3 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: ACCENT }} />
@@ -433,7 +433,7 @@ export default function AccountPage() {
             </aside>
 
             {/* Main content */}
-            <div className="min-h-[60vh] flex-1 bg-[#fafafa] md:bg-white md:px-10 md:py-10">
+            <div className="min-h-[60vh] flex-1 bg-[#fafafa] md:bg-white md:px-8 md:py-8">
               <div className="mx-auto max-w-2xl">
                 <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">{sectionTitle}</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -444,7 +444,7 @@ export default function AccountPage() {
                 </p>
 
                 {user.provider === "google" && section === "settings" && (
-                  <div className="mt-6 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
                     <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <p>
                       <span className="font-semibold text-foreground">Signed in with Google.</span>{" "}
@@ -455,7 +455,7 @@ export default function AccountPage() {
                 )}
 
                 {section === "settings" && (
-                  <div className="mt-8 space-y-6">
+                  <div className="mt-6 space-y-4">
                     <div className="grid gap-6 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">First name</Label>
@@ -548,7 +548,7 @@ export default function AccountPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                    <div className="flex flex-wrap items-center gap-4 pt-1">
                       <Button
                         type="button"
                         disabled={saving}

@@ -207,7 +207,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
               <SheetHeader className="p-6 border-b">
-                <SheetTitle className="font-headline text-xl">Your Royal Basket</SheetTitle>
+                <SheetTitle className="font-headline text-xl">Your  Basket</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto">
                 <CartContent />

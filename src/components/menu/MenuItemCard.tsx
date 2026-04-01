@@ -102,7 +102,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
     );
     toast({
       title: "Added to basket",
-      description: `${quantity}x ${displayName} has been added to your royal order.`,
+      description: `${quantity}x ${displayName} has been added to your  order.`,
       duration: 3500,
     });
     setQuantity(1);

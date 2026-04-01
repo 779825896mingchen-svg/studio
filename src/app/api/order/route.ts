@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessions } from "@/app/lib/auth/local-auth-store";
+import { createOrderId } from "@/app/lib/orders/create-order-id";
 import { saveOrder } from "@/app/lib/orders/local-orders-store";
 import { insertCskStoreOrder } from "@/app/lib/orders/store-sql-order";
 
@@ -55,10 +57,24 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       undefined;
 
+    let localAccountId: string | undefined;
+    const authToken = request.cookies.get("auth_session")?.value;
+    if (authToken) {
+      const sessions = await getSessions();
+      const session = sessions.find((s) => s.token === authToken) ?? null;
+      if (
+        session &&
+        (!session.expiresAt || new Date(session.expiresAt).getTime() >= Date.now())
+      ) {
+        localAccountId = session.accountId;
+      }
+    }
+
     // Persist order locally so the user can view order history without any external database.
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
+    const orderId = createOrderId();
     await saveOrder({
       id: orderId,
+      ...(localAccountId ? { accountId: localAccountId } : {}),
       name: name || "Guest",
       email: email || "unknown",
       phone: phone || "",
@@ -118,7 +134,7 @@ export async function POST(request: NextRequest) {
     const payload = {
       embeds: [
         {
-          title: "👑 New Royal Order",
+          title: "👑 New  Order",
           description: scheduledFor
             ? "A scheduled order has been placed from the Emperor's Choice checkout."
             : "A new order has been placed from the Emperor's Choice checkout.",
@@ -156,7 +172,7 @@ export async function POST(request: NextRequest) {
             },
           ],
           footer: {
-            text: "Emperor's Choice · Royal Checkout",
+            text: "Emperor's Choice ·  Checkout",
           },
         },
       ],

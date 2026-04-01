@@ -12,6 +12,8 @@ type CartItem = {
 
 export type LocalOrder = {
   id: string;
+  /** Set when the user was signed in with local auth at checkout; used for reliable history matching. */
+  accountId?: string;
   name: string;
   email: string;
   phone: string;
@@ -59,5 +61,15 @@ export async function getOrdersByEmail(email: string) {
   const orders = await readOrders();
   const normalized = email.trim().toLowerCase();
   return orders.filter((o) => o.email.trim().toLowerCase() === normalized);
+}
+
+/** Orders for a local account: match by accountId when present, otherwise fall back to email (legacy rows). */
+export async function getOrdersForLocalAccount(accountId: string, email: string) {
+  const orders = await readOrders();
+  const normalized = email.trim().toLowerCase();
+  return orders.filter((o) => {
+    if (o.accountId) return o.accountId === accountId;
+    return o.email.trim().toLowerCase() === normalized;
+  });
 }
 
