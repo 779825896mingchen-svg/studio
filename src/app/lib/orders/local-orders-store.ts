@@ -73,3 +73,10 @@ export async function getOrdersForLocalAccount(accountId: string, email: string)
   });
 }
 
+export async function getOrderById(orderId: string) {
+  const orders = await readOrders();
+  const normalized = orderId.trim().toLowerCase();
+  if (!normalized) return null;
+  return orders.find((o) => o.id.trim().toLowerCase() === normalized) ?? null;
+}
+

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   ensureAdminAccount,
-  getAccountByIdentifier,
+  getAccountByEmail,
   getResetCodes,
-  normalizePhoneDigits,
   saveResetCodes,
   updateAccountPassword,
 } from "@/app/lib/auth/local-auth-store";
@@ -12,23 +11,20 @@ export async function POST(req: NextRequest) {
   try {
     await ensureAdminAccount();
     const body = (await req.json()) as {
-      channel?: "email" | "phone";
-      identifier?: string;
+      email?: string;
       code?: string;
       newPassword?: string;
     };
 
-    const channel = body.channel === "phone" ? "phone" : "email";
-    const identifierRaw = (body.identifier ?? "").trim();
-    const identifier = channel === "phone" ? normalizePhoneDigits(identifierRaw) : identifierRaw.toLowerCase();
+    const email = (body.email ?? "").trim().toLowerCase();
     const code = (body.code ?? "").trim();
     const newPassword = (body.newPassword ?? "").trim();
 
-    if (!identifier || !code || newPassword.length < 6) {
+    if (!email || !/\S+@\S+\.\S+/.test(email) || !code || newPassword.length < 6) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const account = await getAccountByIdentifier(identifier);
+    const account = await getAccountByEmail(email);
     if (!account) {
       return NextResponse.json({ error: "Invalid code or account" }, { status: 400 });
     }
@@ -37,10 +33,10 @@ export async function POST(req: NextRequest) {
     const idx = codes.findIndex(
       (c) =>
         c.accountId === account.id &&
-        c.channel === channel &&
-        c.identifier === identifier &&
+        c.channel === "email" &&
+        c.identifier === email &&
         c.code === code &&
-        !c.usedAt
+        !c.usedAt,
     );
 
     if (idx < 0) {
@@ -65,4 +61,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Could not reset password" }, { status: 500 });
   }
 }
-

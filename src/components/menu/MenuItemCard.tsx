@@ -14,21 +14,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { stripChoiceParentheses } from '@/app/lib/menu-display-name';
 
-function stripChoiceParentheses(name: string): string {
-  // Only remove parentheses that look like selectable choices, not counts like "(4)" or sizes like "(Large)".
-  // Examples removed: "(Chicken or Pork)", "(Soft/Crispy)", "(Lemon Pepper/Bar-B-Q/Honey/...)".
-  const match = name.match(/\(([^)]+)\)/);
-  if (!match) return name;
-
-  const inside = match[1].trim();
-  const looksLikeChoice = /\s+or\s+/i.test(inside) || /\//.test(inside);
-  if (!looksLikeChoice) return name;
-
-  return name.replace(/\s*\([^)]+\)\s*/, " ").replace(/\s{2,}/g, " ").trim();
-}
-
-export function MenuItemCard({ item }: { item: MenuItem }) {
+export function MenuItemCard({
+  item,
+  nameTranslation,
+  descriptionTranslation,
+  categoryTranslation,
+}: {
+  item: MenuItem;
+  /** Spanish (or other) label for display; cart/order still use English. */
+  nameTranslation?: string;
+  descriptionTranslation?: string;
+  categoryTranslation?: string;
+}) {
   const [instructions, setInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const computedVariants = useMemo(() => {
@@ -67,7 +66,16 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   const { toast } = useToast();
 
   const variants = computedVariants;
-  const displayName = useMemo(() => stripChoiceParentheses(item.name), [item.name]);
+  const displayNameEn = useMemo(() => stripChoiceParentheses(item.name), [item.name]);
+  const displayName =
+    nameTranslation && nameTranslation.trim() && nameTranslation !== displayNameEn
+      ? nameTranslation.trim()
+      : displayNameEn;
+  const descDisplay =
+    descriptionTranslation && descriptionTranslation.trim()
+      ? descriptionTranslation.trim()
+      : item.description;
+  const categoryDisplay = categoryTranslation?.trim() || item.category;
   const unitPrice = (() => {
     let p = item.price;
     for (const v of variants) {
@@ -94,7 +102,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
       : undefined;
 
     addToCart(
-      { ...item, name: displayName, price: unitPrice },
+      { ...item, name: displayNameEn, price: unitPrice },
       quantity,
       instructions,
       undefined,
@@ -102,7 +110,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
     );
     toast({
       title: "Added to basket",
-      description: `${quantity}x ${displayName} has been added to your  order.`,
+      description: `${quantity}× ${displayName}`,
       duration: 3500,
     });
     setQuantity(1);
@@ -111,13 +119,12 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Card className="w-full min-w-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
+      <Card className="w-full min-w-0 overflow-hidden group hover:shadow-xl transition-all duration-300 border-border/60 hover:border-primary/40 flex flex-col h-full bg-card">
           {/* Mobile: shorter media block so the whole card fits more comfortably */}
           <div className="relative h-36 sm:h-48 overflow-hidden">
             <Image 
               src={item.imageUrl} 
-              alt={item.name} 
+              alt={displayName} 
               fill 
               unoptimized
               loading="lazy"
@@ -138,25 +145,26 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
                 <span className="font-bold text-primary">${item.price.toFixed(2)}</span>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic font-body">
-                {item.description}
+                {descDisplay}
               </p>
             </div>
             
             <div className="flex items-center justify-between mt-auto">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{item.category}</span>
-              <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
-                ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
-              </Button>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{categoryDisplay}</span>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="rounded-full border-primary/20 hover:bg-primary/10 hover:text-primary group/btn h-8">
+                  ADD <Plus className="ml-1 w-3 h-3 group-hover/btn:scale-110" />
+                </Button>
+              </DialogTrigger>
             </div>
           </CardContent>
         </Card>
-      </DialogTrigger>
       
       <DialogContent className="sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
         <div className="relative h-48 sm:h-64">
           <Image
             src={item.imageUrl}
-            alt={item.name}
+            alt={displayName}
             fill
             unoptimized
             loading="lazy"
@@ -167,7 +175,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
             <DialogTitle className="text-3xl font-headline font-bold">
               {displayName}
             </DialogTitle>
-            <p className="text-white/80 max-w-sm text-sm">{item.description}</p>
+            <p className="text-white/80 max-w-sm text-sm">{descDisplay}</p>
           </div>
         </div>
         

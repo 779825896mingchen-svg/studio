@@ -8,6 +8,13 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
   ],
+  pages: {
+    signIn: "/signin/oauth",
+  },
+  theme: {
+    colorScheme: "light",
+    brandColor: "#c33d22",
+  },
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
   callbacks: {

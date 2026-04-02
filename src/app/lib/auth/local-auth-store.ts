@@ -193,7 +193,7 @@ export type PasswordResetCode = {
   id: string;
   accountId: string;
   identifier: string;
-  channel: "email" | "phone";
+  channel: "email";
   code: string;
   createdAt: string;
   expiresAt: string;
@@ -216,14 +216,15 @@ export function createResetCode() {
 }
 
 export async function storeResetDelivery(params: {
-  channel: "email" | "phone";
+  channel: "email";
   destination: string;
   code: string;
   accountName?: string;
+  ttlMinutes?: number;
 }) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  if (params.channel === "email") {
-    const html = `<!doctype html>
+  const ttl = params.ttlMinutes && params.ttlMinutes > 0 ? params.ttlMinutes : 10;
+  const html = `<!doctype html>
 <html>
   <body style="font-family: Inter, Arial, sans-serif; background:#f6f6f7; padding:24px;">
     <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #ececf0;">
@@ -232,19 +233,14 @@ export async function storeResetDelivery(params: {
         <p style="margin:0 0 12px 0; color:#111827;">Hi ${params.accountName || "there"},</p>
         <p style="margin:0 0 16px 0; color:#374151;">Use this verification code to reset your password:</p>
         <div style="font-size:32px; font-weight:800; letter-spacing:6px; color:#f97316; margin:8px 0 16px 0;">${params.code}</div>
-        <p style="margin:0; color:#6b7280;">This code expires in 10 minutes.</p>
+        <p style="margin:0; color:#6b7280;">This code expires in ${ttl} minutes.</p>
+        <p style="margin:16px 0 0 0; color:#9ca3af; font-size:12px;">To: ${params.destination}</p>
       </div>
     </div>
   </body>
 </html>`;
-    const filePath = path.join(OUTBOX_DIR, `email-${timestamp}.html`);
-    await fs.writeFile(filePath, html, "utf8");
-    return;
-  }
-
-  const message = `Emperor's Choice password reset code: ${params.code}. Expires in 10 minutes.`;
-  const filePath = path.join(OUTBOX_DIR, `sms-${timestamp}.txt`);
-  await fs.writeFile(filePath, `To: ${params.destination}\n${message}\n`, "utf8");
+  const filePath = path.join(OUTBOX_DIR, `email-${timestamp}.html`);
+  await fs.writeFile(filePath, html, "utf8");
 }
 
 export async function getAccountById(id: string) {

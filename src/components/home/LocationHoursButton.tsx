@@ -3,10 +3,12 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/contexts/locale-context";
 
 const TARGET_ID = "location-hours";
 
 export function LocationHoursButton() {
+  const { t } = useLocale();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -41,7 +43,7 @@ export function LocationHoursButton() {
         router.push("/home");
       }}
     >
-      Location & Hours
+      {t("locationHours.button")}
     </Button>
   );
 }

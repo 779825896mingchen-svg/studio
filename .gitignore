@@ -45,3 +45,7 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# local app stores (dev/runtime churn — not worth tracking in git)
+/data/accounts.json
+/data/orders.json

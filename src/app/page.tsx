@@ -1,117 +1,146 @@
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Clock, MapPin, ExternalLink, LogIn, UserPlus } from 'lucide-react';
-import { HeroSlideshow } from '@/components/home/HeroSlideshow';
-import { LocationHoursButton } from '@/components/home/LocationHoursButton';
+import Image from "next/image";
+import Link from "next/link";
+import { Navbar } from "@/components/layout/Navbar";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Clock, MapPin, ExternalLink } from "lucide-react";
+import { HeroSlideshow } from "@/components/home/HeroSlideshow";
+import { LocationHoursButton } from "@/components/home/LocationHoursButton";
+import { useLocale } from "@/contexts/locale-context";
+
+function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
 
 export default function Home() {
+  const { t } = useLocale();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
+
+      <section className="relative flex h-[80vh] items-center justify-center overflow-hidden">
         <HeroSlideshow className="absolute inset-0 z-0" intervalMs={5000} />
-        
-        <div className="container relative z-10 px-4 text-center space-y-8 max-w-4xl mx-auto">
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Badge className="bg-secondary text-secondary-foreground px-4 py-1 mb-4 rounded-full font-bold tracking-widest text-xs uppercase">
-              Emperor's Choice Chinese Restaurant in Clayton
+
+        <div className="container relative z-10 mx-auto max-w-4xl space-y-8 px-4 text-center">
+          <div className="space-y-4 duration-700 animate-in fade-in slide-in-from-bottom-4">
+            <Badge className="mb-4 rounded-full bg-secondary px-4 py-1 text-xs font-bold uppercase tracking-widest text-secondary-foreground">
+              {t("home.heroBadge")}
             </Badge>
-            <h1 className="text-5xl md:text-7xl font-headline font-bold text-white tracking-tight">
-              Emperor's Choice <span className="text-secondary">Chinese Restaurant</span>
+            <h1 className="font-headline text-5xl font-bold tracking-tight text-white md:text-7xl">
+              {t("home.heroTitle")}{" "}
+              <span className="text-secondary">{t("home.heroTitleAccent")}</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 font-body max-w-2xl mx-auto leading-relaxed">
-              We serve authentic Chinese dishes made with fresh ingredients.
+            <p className="mx-auto max-w-2xl font-body text-xl leading-relaxed text-white/90 md:text-2xl">
+              {t("home.heroSubtitle")}
             </p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+
+          <div className="flex flex-col items-center justify-center gap-4 duration-700 delay-200 animate-in fade-in slide-in-from-bottom-8 sm:flex-row">
             <Link href="/menu">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-7 text-xl rounded-xl shadow-xl shadow-primary/30 group">
-                Browse Full Menu
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Button
+                size="lg"
+                className="group rounded-xl bg-primary px-8 py-7 text-xl text-primary-foreground shadow-xl shadow-primary/30 hover:bg-primary/90"
+              >
+                {t("home.browseMenu")}
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
             <LocationHoursButton />
           </div>
-        </div>
-      </section>
 
-      {/* Featured Section */}
-      <section className="py-24 bg-card">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-12 mb-16">
-            <div className="max-w-xl">
-              <h2 className="text-4xl font-headline font-bold mb-6 text-primary">Quality in Every Dish</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Emperor's Choice serves classic Chinese dishes in Clayton. We use fresh ingredients and cook with wok methods.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col items-center p-6 bg-background rounded-2xl shadow-sm border border-border text-center">
-                <Clock className="w-8 h-8 text-secondary mb-3" />
-                <span className="font-bold text-xl">15-20m</span>
-                <span className="text-xs text-muted-foreground">Pickup Ready</span>
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white shadow-lg shadow-black/10 backdrop-blur-md">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
+                <Clock className="h-5 w-5 text-secondary" />
+              </div>
+              <div className="text-left leading-tight">
+                <p className="text-xs font-bold uppercase tracking-wider text-white/75">
+                  {t("home.pickupReady")}
+                </p>
+                <p className="text-base font-bold">{t("home.pickupMinutes")}</p>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+      <section className="bg-card py-24">
+        <div className="container mx-auto px-4">
+          <div className="mb-16 flex flex-col items-center justify-between gap-12 md:flex-row">
+            <div className="max-w-xl">
+              <h2 className="mb-6 font-headline text-4xl font-bold text-primary">
+                {t("home.qualityHeading")}
+              </h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">{t("home.qualityBody")}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="group relative h-80 overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl">
               <Image
                 src="https://picsum.photos/seed/chicken/600/400"
-                alt="Chef's Specials"
+                alt={t("home.featuredDishes")}
                 fill
                 unoptimized
                 loading="lazy"
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 data-ai-hint="chinese dish"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Featured Dishes</h3>
-                <p className="text-white/70 text-sm mb-4">A selection of our popular menu items.</p>
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6">
+                <h3 className="mb-2 font-headline text-2xl font-bold text-white">{t("home.featuredDishes")}</h3>
+                <p className="mb-4 text-sm text-white/70">{t("home.featuredDishesDesc")}</p>
                 <Link href="/menu?cat=Chef's Specials">
-                  <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
+                  <Button variant="secondary" size="sm" className="w-fit">
+                    {t("common.explore")}
+                  </Button>
                 </Link>
               </div>
             </div>
-            <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+            <div className="group relative h-80 overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl">
               <Image
                 src="https://picsum.photos/seed/dimsum/600/400"
-                alt="Dim Sum"
+                alt={t("home.dimSum")}
                 fill
                 unoptimized
                 loading="lazy"
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 data-ai-hint="dim sum"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Dim Sum</h3>
-                <p className="text-white/70 text-sm mb-4">Steamed and fried dumplings and small plates.</p>
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6">
+                <h3 className="mb-2 font-headline text-2xl font-bold text-white">{t("home.dimSum")}</h3>
+                <p className="mb-4 text-sm text-white/70">{t("home.dimSumDesc")}</p>
                 <Link href="/menu?cat=Appetizers">
-                  <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
+                  <Button variant="secondary" size="sm" className="w-fit">
+                    {t("common.explore")}
+                  </Button>
                 </Link>
               </div>
             </div>
-            <div className="group relative h-80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+            <div className="group relative h-80 overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl">
               <Image
                 src="https://picsum.photos/seed/friedrice/600/400"
-                alt="Fast Favorites"
+                alt={t("home.riceNoodles")}
                 fill
                 unoptimized
                 loading="lazy"
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
                 data-ai-hint="fried rice"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                <h3 className="text-2xl font-headline font-bold text-white mb-2">Rice and Noodles</h3>
-                <p className="text-white/70 text-sm mb-4">Noodles, rice, and wok-cooked favorites.</p>
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6">
+                <h3 className="mb-2 font-headline text-2xl font-bold text-white">{t("home.riceNoodles")}</h3>
+                <p className="mb-4 text-sm text-white/70">{t("home.riceNoodlesDesc")}</p>
                 <Link href="/menu?cat=Rice & Noodles">
-                  <Button variant="secondary" size="sm" className="w-fit">Explore</Button>
+                  <Button variant="secondary" size="sm" className="w-fit">
+                    {t("common.explore")}
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -119,62 +148,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 外卖 和 地址 和 营业时间 */}
-      <section id="location-hours" className="py-24 container mx-auto px-4 scroll-mt-24">
-        <div className="bg-primary text-primary-foreground rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 overflow-hidden relative">
-          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -left-20 -top-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl" />
-          
-          <div className="relative z-10 space-y-6 max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold">Delivery, Location, and Hours</h2>
-            <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              Order delivery through DoorDash or UberEats.
+      <section
+        id="location-hours"
+        className="container mx-auto scroll-mt-24 px-4 py-24"
+      >
+        <div className="relative flex flex-col items-center justify-between gap-12 overflow-hidden rounded-3xl bg-primary p-8 text-primary-foreground md:flex-row md:p-16">
+          <div className="absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
+
+          <div className="relative z-10 max-w-xl space-y-6">
+            <h2 className="font-headline text-4xl font-bold md:text-5xl">{t("home.locationSectionTitle")}</h2>
+            <p className="text-xl leading-relaxed text-primary-foreground/80">
+              {t("home.locationSectionBody")}
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <a href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false" target="_blank" rel="noopener noreferrer">
-                <Button className="bg-white text-[#FF3008] hover:bg-white/90 font-bold px-6 py-6 rounded-xl">
-                  Order on DoorDash <ExternalLink className="ml-2 w-4 h-4" />
+              <a
+                href="https://www.doordash.com/store/emperor's-choice-chinese-restaurant-clayton-555783/1534229/?pickup=false"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button className="rounded-xl bg-white px-6 py-6 font-bold text-[#FF3008] hover:bg-white/90">
+                  {t("home.orderDoorDash")} <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </a>
-              <a href="https://www.ubereats.com/store/emperors-choice-chinese/LSvUUpr3XReBK4G-QPLLuw" target="_blank" rel="noopener noreferrer">
-                <Button className="bg-[#06C167] text-white hover:bg-[#06C167]/90 font-bold px-6 py-6 rounded-xl">
-                  Order on UberEats <ExternalLink className="ml-2 w-4 h-4" />
+              <a
+                href="https://www.ubereats.com/store/emperors-choice-chinese/LSvUUpr3XReBK4G-QPLLuw"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button className="rounded-xl bg-[#06C167] px-6 py-6 font-bold text-white hover:bg-[#06C167]/90">
+                  {t("home.orderUberEats")} <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </a>
             </div>
           </div>
-          
-          <div className="relative z-10 w-full md:w-auto max-w-full bg-white/10 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 space-y-6">
+
+          <div className="relative z-10 w-full max-w-full space-y-6 rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl sm:p-8 md:w-auto">
             <div className="flex items-center gap-4">
-              <MapPin className="text-secondary w-6 h-6 shrink-0" />
+              <MapPin className="h-6 w-6 shrink-0 text-secondary" />
               <div>
-                <p className="font-bold">Clayton Location</p>
-                <p className="text-sm opacity-80">10125 US-70 BUS, Clayton, NC 27520</p>
+                <p className="font-bold">{t("home.claytonLocation")}</p>
+                <p className="text-sm opacity-80">{t("home.address")}</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Clock className="text-secondary w-6 h-6 shrink-0" />
+              <Clock className="h-6 w-6 shrink-0 text-secondary" />
               <div>
-                <p className="font-bold">Opening Hours</p>
-                <p className="text-sm opacity-80">Mon: Closed</p>
-                <p className="text-sm opacity-80">Tue-Thu: 11:00 AM - 9:00 PM</p>
-                <p className="text-sm opacity-80">Fri-Sat: 11:00 AM - 10:00 PM</p>
-                <p className="text-sm opacity-80">Sun: 12:00 PM - 9:00 PM</p>
+                <p className="font-bold">{t("home.openingHours")}</p>
+                <p className="text-sm opacity-80">{t("home.hoursMon")}</p>
+                <p className="text-sm opacity-80">{t("home.hoursTueThu")}</p>
+                <p className="text-sm opacity-80">{t("home.hoursFriSat")}</p>
+                <p className="text-sm opacity-80">{t("home.hoursSun")}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Footer removed (per latest design request) */}
     </div>
-  );
-}
-
-function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${className}`}>
-      {children}
-    </span>
   );
 }

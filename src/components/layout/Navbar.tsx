@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut, PackageSearch } from 'lucide-react';
 import { signOut as nextAuthSignOut } from "next-auth/react";
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
@@ -13,6 +13,8 @@ import { Sheet, SheetClose, SheetContent, SheetTrigger, SheetHeader, SheetTitle 
 import { CartContent } from '@/components/cart/CartContent';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useLocale } from '@/contexts/locale-context';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 
 export type NavbarUser = {
   id: string;
@@ -32,6 +34,7 @@ function initialsFromName(name: string) {
 }
 
 export function Navbar() {
+  const { t } = useLocale();
   const { totalItems, isCartOpen, setIsCartOpen } = useCart();
   const router = useRouter();
   const pathname = usePathname();
@@ -100,13 +103,20 @@ export function Navbar() {
               />
             </div>
             <span className="font-headline text-2xl font-bold tracking-tight text-primary hidden sm:block">
-              EMPEROR'S CHOICE
+              {t("nav.brand")}
             </span>
           </Link>
           
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/menu" className="hover:text-primary transition-colors">Menu</Link>
-            <Link href="/info" className="hover:text-primary transition-colors">Information</Link>
+            <Link href="/menu" className="hover:text-primary transition-colors">{t("nav.menu")}</Link>
+            <Link href="/info" className="hover:text-primary transition-colors">{t("nav.information")}</Link>
+            <Link
+              href="/order-status"
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-primary hover:bg-primary/10 transition-colors"
+            >
+              <PackageSearch className="h-3.5 w-3.5" />
+              {t("nav.orderStatus")}
+            </Link>
           </div>
         </div>
 
@@ -117,6 +127,7 @@ export function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
+            <LanguageSwitcher className="mr-1" />
             {authLoading ? null : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -142,14 +153,17 @@ export function Navbar() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/account">Manage Account</Link>
+                    <Link href="/account">{t("nav.manageAccount")}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/orders">Order History</Link>
+                    <Link href="/account/orders">{t("nav.orderHistory")}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/order-status">{t("nav.orderStatus")}</Link>
                   </DropdownMenuItem>
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin/menu">Admin Menu</Link>
+                      <Link href="/admin/menu">{t("nav.adminMenu")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -161,7 +175,7 @@ export function Navbar() {
                     className="text-destructive focus:text-destructive"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Log out
+                    {t("nav.logOut")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -173,7 +187,7 @@ export function Navbar() {
                 >
                   <Link href="/signin" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>Sign In</span>
+                    <span>{t("nav.signIn")}</span>
                   </Link>
                 </Button>
                 <Button
@@ -183,12 +197,28 @@ export function Navbar() {
                 >
                   <Link href="/signup" className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>Sign Up</span>
+                    <span>{t("nav.signUp")}</span>
                   </Link>
                 </Button>
               </>
             )}
           </div>
+
+          <div className="hidden md:block lg:hidden">
+            <LanguageSwitcher />
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full border border-border/60 bg-muted/40 text-foreground hover:bg-muted/70 shrink-0"
+            asChild
+            aria-label={t("nav.trackOrderAria")}
+          >
+            <Link href="/order-status">
+              <PackageSearch className="h-5 w-5 text-primary" />
+            </Link>
+          </Button>
 
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
@@ -207,7 +237,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
               <SheetHeader className="p-6 border-b">
-                <SheetTitle className="font-headline text-xl">Your  Basket</SheetTitle>
+                <SheetTitle className="font-headline text-xl">{t("nav.yourBasket")}</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto">
                 <CartContent />
@@ -224,30 +254,41 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent side="left" className="p-0 overflow-hidden flex flex-col">
                 <div className="p-6 border-b">
-                  <SheetTitle className="text-left font-headline">Navigation</SheetTitle>
+                  <SheetTitle className="text-left font-headline">{t("nav.navigation")}</SheetTitle>
                 </div>
 
                 <div className="flex flex-col gap-4 mt-8 px-6 pb-8">
+                  <div className="pb-2">
+                    <LanguageSwitcher />
+                  </div>
                   <button
                     type="button"
                     className="text-left text-lg font-medium hover:text-primary"
                     onClick={() => handleMobileNavigate('/home')}
                   >
-                    Home
+                    {t("nav.home")}
                   </button>
                   <button
                     type="button"
                     className="text-left text-lg font-medium hover:text-primary"
                     onClick={() => handleMobileNavigate('/menu')}
                   >
-                    Menu
+                    {t("nav.menu")}
                   </button>
                   <button
                     type="button"
                     className="text-left text-lg font-medium hover:text-primary"
                     onClick={() => handleMobileNavigate('/info')}
                   >
-                    Restaurant Info
+                    {t("nav.restaurantInfo")}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-left text-lg font-medium hover:text-primary flex items-center gap-2"
+                    onClick={() => handleMobileNavigate('/order-status')}
+                  >
+                    <PackageSearch className="h-5 w-5 text-primary shrink-0" />
+                    {t("nav.orderStatus")}
                   </button>
                   {user ? (
                     <>
@@ -256,7 +297,7 @@ export function Navbar() {
                         className="text-left text-lg font-medium hover:text-primary"
                         onClick={() => handleMobileNavigate('/account')}
                       >
-                        Account
+                        {t("nav.account")}
                       </button>
                       <button
                         type="button"
@@ -266,7 +307,7 @@ export function Navbar() {
                           void handleSignOut();
                         }}
                       >
-                        Log out
+                        {t("nav.logOut")}
                       </button>
                     </>
                   ) : (
@@ -275,7 +316,7 @@ export function Navbar() {
                       className="text-left text-lg font-medium hover:text-primary"
                       onClick={() => handleMobileNavigate('/signin')}
                     >
-                      Sign In
+                      {t("nav.signIn")}
                     </button>
                   )}
                 </div>

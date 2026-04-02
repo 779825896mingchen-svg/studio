@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
+import { signIn } from "next-auth/react";
 import { Navbar } from "@/components/layout/Navbar";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     email: false,
@@ -82,8 +84,28 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       <Navbar />
+
+      {googlePending && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm px-4"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="max-w-sm w-full rounded-3xl border border-border/60 bg-card/95 shadow-lg px-8 py-10 text-center space-y-4">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-lg font-semibold text-foreground">Connecting to Google</p>
+              <p className="text-sm text-muted-foreground">
+                Hang on — we&apos;re redirecting you to complete sign-in safely.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-md mx-auto">
@@ -215,8 +237,10 @@ export default function SignUpPage() {
                 type="button"
                 variant="outline"
                 className="w-full h-12 rounded-xl border border-input bg-background hover:bg-accent flex items-center justify-center gap-3 text-sm md:text-base font-medium"
+                disabled={isSubmitting || googlePending}
                 onClick={() => {
-                  window.location.href = "/api/auth/signin/google";
+                  setGooglePending(true);
+                  void signIn("google", { callbackUrl: "/account" });
                 }}
               >
                 <Image src="/google-g.png" alt="Google" width={18} height={18} />

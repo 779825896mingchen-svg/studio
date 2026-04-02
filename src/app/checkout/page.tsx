@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,16 +12,32 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Phone, User, MessageSquare, ShoppingBag, ArrowRight, Flame, Receipt, Clock, Calendar } from "lucide-react";
+import { Phone, User, MessageSquare, ShoppingBag, ArrowRight, Receipt, Clock, Calendar } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import {
   getTodayDateString,
   getTimeSlotsForDate,
   isOpenToday,
 } from "@/app/lib/store-hours";
+import { useLocale } from "@/contexts/locale-context";
+import { useBatchTranslate } from "@/hooks/use-batch-translate";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CheckoutPage() {
+  const { t, locale } = useLocale();
+  const router = useRouter();
   const { cart, totalPrice, totalItems, clearCart } = useCart();
+
+  const checkoutTranslateKeys = useMemo(() => {
+    const s = new Set<string>();
+    cart.forEach((c) => {
+      if (c.name) s.add(c.name);
+      if (c.selectedVariant?.trim()) s.add(c.selectedVariant.trim());
+      if (c.instructions?.trim()) s.add(c.instructions.trim());
+    });
+    return [...s];
+  }, [cart]);
+  const { resolve } = useBatchTranslate(checkoutTranslateKeys, locale);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -96,6 +113,7 @@ export default function CheckoutPage() {
     try {
       const res = await fetch("/api/order", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
@@ -121,13 +139,18 @@ export default function CheckoutPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to send order");
       }
+      const data = (await res.json().catch(() => null)) as
+        | { ok: true; orderId?: string; status?: string; createdAt?: string }
+        | null;
 
       clearCart();
-      if (scheduledFor) {
-        alert("Your order is scheduled! We'll have it ready for pickup at the chosen time.");
-      } else {
-        alert("Your  order has been placed! We'll prepare your feast.");
-      }
+      toast({
+        title: scheduledFor ? t("checkout.toastScheduled") : t("checkout.toastPlaced"),
+        description: data?.orderId
+          ? t("checkout.toastDescWithId", { id: data.orderId })
+          : t("checkout.toastDescGeneric"),
+      });
+      router.push("/order-status");
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -147,18 +170,17 @@ export default function CheckoutPage() {
           <header className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                Emperor&apos;s Choice
+                {t("checkout.eyebrow")}
               </p>
               <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tight">
-                 Checkout
+                {t("checkout.title")}
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Review your basket and share your details so our kitchen can begin your feast.
-              </p>
+              <p className="text-sm text-muted-foreground">{t("checkout.subtitle")}</p>
             </div>
             <Badge className="w-fit bg-secondary text-secondary-foreground rounded-full px-4 py-1 text-xs font-semibold flex items-center gap-2">
               <ShoppingBag className="w-4 h-4" />
-              {totalItems} item{totalItems === 1 ? "" : "s"} in basket
+              {totalItems} {totalItems === 1 ? t("checkout.item") : t("checkout.items")}{" "}
+              {t("checkout.inBasket")}
             </Badge>
           </header>
 
@@ -167,15 +189,13 @@ export default function CheckoutPage() {
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
                 <ShoppingBag className="w-10 h-10" />
               </div>
-              <h2 className="font-headline text-2xl font-bold">Your basket is empty</h2>
-              <p className="text-muted-foreground max-w-md">
-                Add a few imperial favorites from the menu before you return to the throne room.
-              </p>
+              <h2 className="font-headline text-2xl font-bold">{t("checkout.emptyTitle")}</h2>
+              <p className="text-muted-foreground max-w-md">{t("checkout.emptyBody")}</p>
               <Button
                 asChild
                 className="mt-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6"
               >
-                <a href="/menu">Browse Menu</a>
+                <a href="/menu">{t("checkout.browseMenu")}</a>
               </Button>
             </div>
           ) : (
@@ -186,10 +206,11 @@ export default function CheckoutPage() {
                   <div className="space-y-1">
                     <h2 className="text-xl font-headline font-bold flex items-center gap-2">
                       <Receipt className="w-5 h-5 text-primary" />
-                      Your Order
+                      {t("checkout.yourOrder")}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      {totalItems} item{totalItems === 1 ? "" : "s"} from the imperial kitchen
+                      {totalItems} {totalItems === 1 ? t("checkout.item") : t("checkout.items")}{" "}
+                      {t("checkout.itemsFromKitchen")}
                     </p>
                   </div>
 
@@ -204,7 +225,7 @@ export default function CheckoutPage() {
                             <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
                               <Image
                                 src={item.imageUrl}
-                                alt={item.name}
+                                alt={resolve(item.name)}
                                 fill
                                 className="object-cover"
                               />
@@ -212,23 +233,23 @@ export default function CheckoutPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
                                 <h3 className="font-headline font-semibold text-sm leading-tight">
-                                  {item.name}
+                                  {resolve(item.name)}
                                 </h3>
                                 <span className="font-bold text-primary text-sm shrink-0">
                                   ${(item.price * item.quantity).toFixed(2)}
                                 </span>
                               </div>
                               <p className="text-[11px] text-muted-foreground mt-0.5">
-                                ×{item.quantity} @ ${item.price.toFixed(2)} each
+                                ×{item.quantity} @ ${item.price.toFixed(2)} {t("checkout.each")}
                               </p>
                               {item.selectedVariant && (
                                 <p className="text-[11px] text-primary font-medium mt-1">
-                                  Choice: {item.selectedVariant}
+                                  {t("checkout.choice")} {resolve(item.selectedVariant.trim())}
                                 </p>
                               )}
                               {item.instructions && (
                                 <p className="text-[11px] text-muted-foreground italic mt-1 line-clamp-2">
-                                  &ldquo;{item.instructions}&rdquo;
+                                  &ldquo;{resolve(item.instructions.trim())}&rdquo;
                                 </p>
                               )}
                             </div>
@@ -246,17 +267,15 @@ export default function CheckoutPage() {
                   <div className="space-y-1">
                     <h2 className="text-xl font-headline font-bold flex items-center gap-2">
                       <User className="w-5 h-5 text-primary" />
-                      Guest Details
+                      {t("checkout.guestDetails")}
                     </h2>
-                    <p className="text-xs text-muted-foreground">
-                      So we can reach you if the kitchen has any questions.
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t("checkout.guestDetailsHint")}</p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1.5">
-                        Name <span className="text-[11px] text-destructive">*</span>
+                        {t("checkout.name")} <span className="text-[11px] text-destructive">*</span>
                       </Label>
                       <Input
                         id="name"
@@ -267,13 +286,13 @@ export default function CheckoutPage() {
                         onBlur={() => setNameTouched(true)}
                       />
                       {!isValidName && nameTouched && (
-                        <p className="text-[11px] text-destructive">Name is required.</p>
+                        <p className="text-[11px] text-destructive">{t("checkout.nameRequired")}</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm font-medium flex items-center gap-1.5">
-                        Email <span className="text-[11px] text-destructive">*</span>
+                        {t("checkout.email")} <span className="text-[11px] text-destructive">*</span>
                       </Label>
                       <Input
                         id="email"
@@ -285,15 +304,13 @@ export default function CheckoutPage() {
                         onChange={(e) => setEmail(e.target.value)}
                       />
                       {!isValidEmail && email.length > 0 && (
-                        <p className="text-[11px] text-destructive">
-                          Please enter a valid email address.
-                        </p>
+                        <p className="text-[11px] text-destructive">{t("checkout.emailInvalid")}</p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-1.5">
-                        Phone Number <span className="text-[11px] text-destructive">*</span>
+                        {t("checkout.phone")} <span className="text-[11px] text-destructive">*</span>
                         <Phone className="w-3 h-3 text-muted-foreground" />
                       </Label>
                       <Input
@@ -308,13 +325,9 @@ export default function CheckoutPage() {
                           setPhoneDigits(digitsOnly);
                         }}
                       />
-                      <p className="text-[11px] text-muted-foreground">
-                        Numbers only. We&apos;ll only call if there&apos;s an issue with your order.
-                      </p>
+                      <p className="text-[11px] text-muted-foreground">{t("checkout.phoneHint")}</p>
                       {!isValidPhone && phoneDigits.length > 0 && (
-                        <p className="text-[11px] text-destructive">
-                          Please enter a 10-digit phone number.
-                        </p>
+                        <p className="text-[11px] text-destructive">{t("checkout.phoneInvalid")}</p>
                       )}
                     </div>
                   </div>
@@ -326,12 +339,12 @@ export default function CheckoutPage() {
                       htmlFor="requests"
                       className="text-sm font-medium flex items-center gap-1.5"
                     >
-                      Special Requests
+                      {t("checkout.specialRequests")}
                       <MessageSquare className="w-3 h-3 text-muted-foreground" />
                     </Label>
                     <Textarea
                       id="requests"
-                      placeholder="Allergies, sauce on the side, extra spice, pickup time preferences..."
+                      placeholder={t("checkout.requestsPlaceholder")}
                       className="min-h-[96px] rounded-2xl resize-none"
                       value={requests}
                       onChange={(e) => setRequests(e.target.value)}
@@ -360,7 +373,7 @@ export default function CheckoutPage() {
                         }`}
                       >
                         <Clock className="w-4 h-4" />
-                        Pick up ASAP
+                        {t("checkout.pickupAsap")}
                       </button>
                       <button
                         type="button"
@@ -379,7 +392,7 @@ export default function CheckoutPage() {
                       <div className="pt-2">
                         {!isOpenToday() ? (
                           <p className="text-sm text-muted-foreground py-2">
-                            We&apos;re closed today. Schedule for later is only available on days we&apos;re open. Please choose Pick up ASAP or order on an open day.
+                            {t("checkout.closedTodaySchedule")}
                           </p>
                         ) : (
                           <div className="space-y-2">
@@ -392,7 +405,7 @@ export default function CheckoutPage() {
                               disabled={timeSlots.length === 0}
                             >
                               <SelectTrigger id="schedule-time" className="h-11 rounded-xl">
-                                <SelectValue placeholder="Select time (same day only)" />
+                                <SelectValue placeholder={t("checkout.selectTimePlaceholder")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {timeSlots.map((slot) => (
@@ -402,9 +415,7 @@ export default function CheckoutPage() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <p className="text-[11px] text-muted-foreground">
-                              Same-day only. Times within store hours, 15-min intervals.
-                            </p>
+                            <p className="text-[11px] text-muted-foreground">{t("checkout.sameDayTimesHint")}</p>
                           </div>
                         )}
                       </div>
@@ -420,11 +431,11 @@ export default function CheckoutPage() {
                       <span>${totalPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Estimated tax</span>
+                      <span className="text-muted-foreground">{t("checkout.estimatedTax")}</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-border text-base font-bold">
-                      <span>Total due</span>
+                      <span>{t("checkout.totalDue")}</span>
                       <span className="text-primary">${totalWithTax.toFixed(2)}</span>
                     </div>
                   </div>
@@ -444,10 +455,7 @@ export default function CheckoutPage() {
                     {!isSubmitting && <ArrowRight className="w-4 h-4" />}
                   </Button>
 
-                  <p className="text-[11px] text-muted-foreground text-center">
-                    By placing your order you agree to our house policies on substitutions, allergies, and
-                    preparation time.
-                  </p>
+                  <p className="text-[11px] text-muted-foreground text-center">{t("checkout.policyAgreement")}</p>
                 </CardContent>
               </Card>
             </div>

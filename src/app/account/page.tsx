@@ -543,7 +543,7 @@ export default function AccountPage() {
                       </div>
                       {isLocal && (
                         <p className="text-xs text-muted-foreground">
-                          Use forgot password if you signed up with email.
+                          We&apos;ll email a code to {user.email} — use the link only if this is your address.
                         </p>
                       )}
                     </div>

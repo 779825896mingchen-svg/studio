@@ -1,14 +1,30 @@
 
 "use client";
 
+import { useMemo } from "react";
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLocale } from '@/contexts/locale-context';
+import { useBatchTranslate } from '@/hooks/use-batch-translate';
 
 export function CartContent() {
+  const { t, locale } = useLocale();
   const { cart, updateQuantity, removeFromCart, totalPrice, totalItems, setIsCartOpen } = useCart();
+
+  const translateKeys = useMemo(() => {
+    const s = new Set<string>();
+    cart.forEach((c) => {
+      if (c.name) s.add(c.name);
+      if (c.selectedVariant?.trim()) s.add(c.selectedVariant.trim());
+      if (c.instructions?.trim()) s.add(c.instructions.trim());
+    });
+    return [...s];
+  }, [cart]);
+
+  const { resolve } = useBatchTranslate(translateKeys, locale);
 
   if (cart.length === 0) {
     return (
@@ -16,15 +32,15 @@ export function CartContent() {
         <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
           <ShoppingBag className="w-10 h-10" />
         </div>
-        <h3 className="font-headline text-xl font-bold">Your basket is empty</h3>
-        <p className="text-muted-foreground">Hungry? Explore our delicious Chinese menu and start adding your favorites.</p>
+        <h3 className="font-headline text-xl font-bold">{t("cart.emptyTitle")}</h3>
+        <p className="text-muted-foreground">{t("cart.emptyBody")}</p>
         <Link
           href="/menu"
           className="w-full"
           onClick={() => setIsCartOpen(false)}
         >
           <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-            Browse Menu
+            {t("cart.browseMenu")}
           </Button>
         </Link>
       </div>
@@ -39,7 +55,7 @@ export function CartContent() {
             <div className="relative w-20 h-20 rounded-md overflow-hidden shrink-0">
               <Image 
                 src={item.imageUrl} 
-                alt={item.name} 
+                alt={resolve(item.name)} 
                 fill 
                 className="object-cover"
               />
@@ -47,12 +63,16 @@ export function CartContent() {
             <div className="flex-1 flex flex-col justify-between">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-headline font-bold text-sm leading-tight">{item.name}</h4>
+                  <h4 className="font-headline font-bold text-sm leading-tight">{resolve(item.name)}</h4>
                   {item.selectedVariant && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">Choice: {item.selectedVariant}</p>
+                    <p className="text-[10px] text-primary font-medium mt-0.5">
+                      {t("cart.choice")} {resolve(item.selectedVariant.trim())}
+                    </p>
                   )}
                   {item.instructions && (
-                    <p className="text-[10px] text-muted-foreground italic line-clamp-1 mt-0.5">"{item.instructions}"</p>
+                    <p className="text-[10px] text-muted-foreground italic line-clamp-1 mt-0.5">
+                      &ldquo;{resolve(item.instructions.trim())}&rdquo;
+                    </p>
                   )}
                 </div>
                 <button 
@@ -92,15 +112,15 @@ export function CartContent() {
       <div className="p-6 bg-card border-t border-border space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Items ({totalItems})</span>
+            <span className="text-muted-foreground">{t("cart.items")} ({totalItems})</span>
             <span>${totalPrice.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Estimated Tax</span>
+            <span className="text-muted-foreground">{t("cart.estimatedTax")}</span>
             <span>${(totalPrice * 0.08).toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
-            <span>Total</span>
+            <span>{t("cart.total")}</span>
             <span className="text-primary">${(totalPrice * 1.08).toFixed(2)}</span>
           </div>
         </div>
@@ -110,7 +130,7 @@ export function CartContent() {
           onClick={() => setIsCartOpen(false)}
         >
           <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-lg rounded-xl shadow-lg shadow-primary/20">
-            Proceed to Checkout
+            {t("cart.proceedCheckout")}
           </Button>
         </Link>
       </div>

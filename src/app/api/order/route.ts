@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessions } from "@/app/lib/auth/local-auth-store";
 import { createOrderId } from "@/app/lib/orders/create-order-id";
 import { saveOrder } from "@/app/lib/orders/local-orders-store";
+import { attachRecentOrderCookie } from "@/app/lib/orders/recent-order-cookie";
 import { insertCskStoreOrder } from "@/app/lib/orders/store-sql-order";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Persist order locally so the user can view order history without any external database.
     const orderId = createOrderId();
+    const createdAt = new Date().toISOString();
     await saveOrder({
       id: orderId,
       ...(localAccountId ? { accountId: localAccountId } : {}),
@@ -93,7 +95,7 @@ export async function POST(request: NextRequest) {
       tax,
       totalWithTax,
       status: "Received",
-      createdAt: new Date().toISOString(),
+      createdAt,
     });
 
     const sqlResult = await insertCskStoreOrder({
@@ -197,7 +199,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true, orderId, status: "Received", createdAt });
+    attachRecentOrderCookie(res, orderId);
+    return res;
   } catch (e) {
     console.error("Order API error:", e);
     return NextResponse.json(
