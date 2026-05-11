@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { getSupabaseAdminClient } from "@/app/lib/db/supabase-admin";
 
 export type LocalAccount = {
   id: string;
@@ -28,6 +29,17 @@ const ACCOUNTS_TXT_FILE = path.join(DATA_DIR, "accounts.txt");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const RESET_CODES_FILE = path.join(DATA_DIR, "password-resets.json");
 const OUTBOX_DIR = path.join(DATA_DIR, "outbox");
+
+type DbCustomerRow = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: "admin" | "customer" | null;
+  password_salt: string;
+  password_hash: string;
+  created_at: string;
+};
 
 async function ensureDataDir() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -78,6 +90,24 @@ export function normalizePhoneDigits(phone: string) {
 }
 
 export async function getAccounts(): Promise<LocalAccount[]> {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name,email,phone,role,password_salt,password_hash,created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((a: DbCustomerRow) => ({
+      id: a.id,
+      name: a.name,
+      email: (a.email || "").trim().toLowerCase(),
+      phone: a.phone || "",
+      role: a.role === "admin" ? "admin" : "customer",
+      password: { salt: a.password_salt, hash: a.password_hash },
+      createdAt: a.created_at,
+    }));
+  }
+
   await ensureDataDir();
   const accounts = await readJsonFile<LocalAccount[]>(ACCOUNTS_FILE);
   if (!Array.isArray(accounts)) return [];
@@ -89,6 +119,23 @@ export async function getAccounts(): Promise<LocalAccount[]> {
 }
 
 export async function saveAccounts(accounts: LocalAccount[]) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const rows = accounts.map((a) => ({
+      id: a.id,
+      name: a.name,
+      email: a.email.trim().toLowerCase(),
+      phone: a.phone || null,
+      role: a.role === "admin" ? "admin" : "customer",
+      password_salt: a.password.salt,
+      password_hash: a.password.hash,
+      created_at: a.createdAt,
+    }));
+    const { error } = await supabase.from("customers").upsert(rows, { onConflict: "id" });
+    if (error) throw error;
+    return;
+  }
+
   await ensureDataDir();
   await writeJsonFile(ACCOUNTS_FILE, accounts);
   await fs.writeFile(ACCOUNTS_TXT_FILE, formatAccountsTxt(accounts), "utf8");
@@ -117,35 +164,93 @@ export function verifyPassword(password: string, salt: string, expectedHash: str
 }
 
 export async function upsertAccount(account: LocalAccount) {
-  const accounts = await getAccounts();
   const normalizedEmail = account.email.trim().toLowerCase();
   const normalizedPhone = normalizePhoneDigits(account.phone || "");
-  const idx = accounts.findIndex((a) => a.email.trim().toLowerCase() === normalizedEmail);
-  if (idx >= 0) {
-    accounts[idx] = {
-      ...account,
+
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const row = {
+      id: account.id,
+      name: account.name,
       email: normalizedEmail,
-      phone: normalizedPhone,
+      phone: normalizedPhone || null,
       role: account.role === "admin" ? "admin" : "customer",
+      password_salt: account.password.salt,
+      password_hash: account.password.hash,
+      created_at: account.createdAt,
     };
-  } else {
-    accounts.unshift({
+    const { error } = await supabase.from("customers").upsert(row, { onConflict: "id" });
+    if (error) throw error;
+    return;
+  }
+
+  const accounts = await getAccounts();
+  const idx = accounts.findIndex((a) => a.email.trim().toLowerCase() === normalizedEmail);
+  const normalizedAccount = {
       ...account,
       email: normalizedEmail,
       phone: normalizedPhone,
       role: account.role === "admin" ? "admin" : "customer",
-    });
+    } as LocalAccount;
+  if (idx >= 0) {
+    accounts[idx] = normalizedAccount;
+  } else {
+    accounts.unshift(normalizedAccount);
   }
   await saveAccounts(accounts);
 }
 
 export async function getAccountByEmail(email: string) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name,email,phone,role,password_salt,password_hash,created_at")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const a = data as DbCustomerRow;
+    return {
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      phone: a.phone || "",
+      role: a.role === "admin" ? "admin" : "customer",
+      password: { salt: a.password_salt, hash: a.password_hash },
+      createdAt: a.created_at,
+    } as LocalAccount;
+  }
+
   const accounts = await getAccounts();
   const normalizedEmail = email.trim().toLowerCase();
   return accounts.find((a) => a.email.trim().toLowerCase() === normalizedEmail) ?? null;
 }
 
 export async function getAccountByPhone(phone: string) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const normalizedPhone = normalizePhoneDigits(phone);
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name,email,phone,role,password_salt,password_hash,created_at")
+      .eq("phone", normalizedPhone)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const a = data as DbCustomerRow;
+    return {
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      phone: a.phone || "",
+      role: a.role === "admin" ? "admin" : "customer",
+      password: { salt: a.password_salt, hash: a.password_hash },
+      createdAt: a.created_at,
+    } as LocalAccount;
+  }
+
   const accounts = await getAccounts();
   const normalizedPhone = normalizePhoneDigits(phone);
   return accounts.find((a) => normalizePhoneDigits(a.phone || "") === normalizedPhone) ?? null;
@@ -158,6 +263,17 @@ export async function getAccountByIdentifier(identifier: string) {
 }
 
 export async function updateAccountPassword(accountId: string, newPassword: string) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const password = createPasswordHash(newPassword);
+    const { error } = await supabase
+      .from("customers")
+      .update({ password_salt: password.salt, password_hash: password.hash })
+      .eq("id", accountId);
+    if (error) throw error;
+    return true;
+  }
+
   const accounts = await getAccounts();
   const idx = accounts.findIndex((a) => a.id === accountId);
   if (idx < 0) return false;
@@ -244,6 +360,27 @@ export async function storeResetDelivery(params: {
 }
 
 export async function getAccountById(id: string) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id,name,email,phone,role,password_salt,password_hash,created_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const a = data as DbCustomerRow;
+    return {
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      phone: a.phone || "",
+      role: a.role === "admin" ? "admin" : "customer",
+      password: { salt: a.password_salt, hash: a.password_hash },
+      createdAt: a.created_at,
+    } as LocalAccount;
+  }
+
   const accounts = await getAccounts();
   return accounts.find((a) => a.id === id) ?? null;
 }
@@ -252,6 +389,22 @@ export async function updateAccountProfile(
   accountId: string,
   updates: { name?: string; phone?: string },
 ) {
+  const supabase = getSupabaseAdminClient();
+  if (supabase) {
+    const patch: { name?: string; phone?: string | null } = {};
+    if (updates.name !== undefined) {
+      const t = updates.name.trim();
+      if (t) patch.name = t;
+    }
+    if (updates.phone !== undefined) {
+      patch.phone = normalizePhoneDigits(updates.phone) || null;
+    }
+    if (Object.keys(patch).length === 0) return true;
+    const { error } = await supabase.from("customers").update(patch).eq("id", accountId);
+    if (error) throw error;
+    return true;
+  }
+
   const accounts = await getAccounts();
   const idx = accounts.findIndex((a) => a.id === accountId);
   if (idx < 0) return false;

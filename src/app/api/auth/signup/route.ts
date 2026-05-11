@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createPasswordHash, ensureAdminAccount, getAccountByEmail, getAccountByPhone, normalizePhoneDigits, upsertAccount } from "@/app/lib/auth/local-auth-store";
+import { notifyDiscordDbEventFireAndForget } from "@/app/lib/notify/discord-db-log";
+import { getSupabaseAdminClient } from "@/app/lib/db/supabase-admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,6 +46,18 @@ export async function POST(req: NextRequest) {
     };
 
     await upsertAccount(account);
+
+    if (getSupabaseAdminClient()) {
+      notifyDiscordDbEventFireAndForget({
+        title: "Database: new customer account",
+        description: "Row upserted in Supabase `customers` (signup).",
+        fields: [
+          { name: "Email", value: email, inline: true },
+          { name: "Name", value: name, inline: true },
+          { name: "Account ID", value: account.id, inline: true },
+        ],
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {

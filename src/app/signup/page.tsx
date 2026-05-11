@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +12,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { UserPlus, Mail, Key, ArrowRight, Phone } from "lucide-react";
+import { UserPlus, Mail, Key, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { setGoogleOAuthIntent } from "@/app/lib/auth/set-google-oauth-intent";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromGoogle = searchParams.get("google") === "1";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,6 +37,14 @@ export default function SignUpPage() {
     password: false,
     confirmPassword: false,
   });
+
+  useEffect(() => {
+    if (!fromGoogle) return;
+    const em = searchParams.get("email")?.trim();
+    const nm = searchParams.get("name")?.trim();
+    if (em) setEmail((prev) => prev || em);
+    if (nm) setName((prev) => prev || nm);
+  }, [fromGoogle, searchParams]);
 
   const isValidName = name.trim().length >= 2;
   const isValidEmail = /\S+@\S+\.\S+/.test(email);
@@ -74,10 +86,12 @@ export default function SignUpPage() {
 
       toast({
         title: "Account created",
-        description: "Please sign in.",
+        description: fromGoogle
+          ? "Sign in with Google to connect this account."
+          : "You can sign in now.",
       });
 
-      router.push("/signin");
+      router.push("/signin?registered=1");
     } finally {
       setIsSubmitting(false);
     }
@@ -116,11 +130,20 @@ export default function SignUpPage() {
               </div>
               <CardTitle className="text-2xl">Create your account</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Get started with Emperor&apos;s Choice.
+                {fromGoogle
+                  ? "Finish your profile — we filled in what Google shared."
+                  : "Get started with Emperor's Choice."}
               </p>
             </CardHeader>
 
             <CardContent className="space-y-6">
+              {fromGoogle && (
+                <p className="text-sm rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-foreground">
+                  Your email is locked to your Google account so sign-in stays in sync. Add your phone
+                  number and create a password.
+                </p>
+              )}
+
               <form onSubmit={onSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-medium">
@@ -151,9 +174,11 @@ export default function SignUpPage() {
                     placeholder="you@example.com"
                     value={email}
                     autoComplete="email"
+                    readOnly={fromGoogle}
+                    aria-readonly={fromGoogle}
                     onChange={(e) => setEmail(e.target.value)}
                     onBlur={() => setTouched((p) => ({ ...p, email: true }))}
-                    className="h-11 rounded-xl"
+                    className={`h-11 rounded-xl ${fromGoogle ? "bg-muted/60 cursor-not-allowed" : ""}`}
                   />
                   {!isValidEmail && touched.email && (
                     <p className="text-[12px] text-destructive">Please enter a valid email.</p>
@@ -231,21 +256,32 @@ export default function SignUpPage() {
                 </Button>
               </form>
 
-              <Separator />
+              {!fromGoogle && (
+                <>
+                  <Separator />
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 rounded-xl border border-input bg-background hover:bg-accent flex items-center justify-center gap-3 text-sm md:text-base font-medium"
-                disabled={isSubmitting || googlePending}
-                onClick={() => {
-                  setGooglePending(true);
-                  void signIn("google", { callbackUrl: "/account" });
-                }}
-              >
-                <Image src="/google-g.png" alt="Google" width={18} height={18} />
-                <span>Sign up with Google</span>
-              </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-12 rounded-xl border border-input bg-background hover:bg-accent flex items-center justify-center gap-3 text-sm md:text-base font-medium"
+                    disabled={isSubmitting || googlePending}
+                    onClick={() => {
+                      setGooglePending(true);
+                      void (async () => {
+                        await setGoogleOAuthIntent("signup");
+                        const dest =
+                          typeof window !== "undefined"
+                            ? `${window.location.origin}/account`
+                            : "/account";
+                        void signIn("google", { callbackUrl: dest });
+                      })();
+                    }}
+                  >
+                    <Image src="/google-g.png" alt="Google" width={18} height={18} />
+                    <span>Sign up with Google</span>
+                  </Button>
+                </>
+              )}
 
               <p className="text-sm text-muted-foreground text-center">
                 Already have an account?{" "}
@@ -261,3 +297,16 @@ export default function SignUpPage() {
   );
 }
 
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <SignUpForm />
+    </Suspense>
+  );
+}

@@ -15,6 +15,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import { useLocale } from '@/contexts/locale-context';
 import { stripChoiceParentheses } from '@/app/lib/menu-display-name';
 import { useBatchTranslate } from '@/hooks/use-batch-translate';
+import { expandChoiceItems } from '@/app/lib/expand-choice-items';
 
 export default function MenuPage() {
   const { t, locale } = useLocale();
@@ -22,14 +23,16 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [spicyOnly, setSpicyOnly] = useState(false);
-  const [popularOnly, setPopularOnly] = useState(false);
   const [persistedItems, setPersistedItems] = useState<MenuItem[] | null>(null);
 
   useEffect(() => {
     setPersistedItems(loadPersistedMenuItems());
   }, []);
 
-  const itemsSource = persistedItems ?? menuItems;
+  const itemsSource = useMemo(
+    () => (persistedItems ? expandChoiceItems(persistedItems) : menuItems),
+    [persistedItems]
+  );
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -49,11 +52,10 @@ export default function MenuPage() {
 
       // Optional "specific filters" toggles.
       if (spicyOnly && (item.spiceLevel ?? 0) < 2) return false;
-      if (popularOnly && !item.popular) return false;
 
       return true;
     });
-  }, [activeCategory, itemsSource, searchQuery, spicyOnly, popularOnly]);
+  }, [activeCategory, itemsSource, searchQuery, spicyOnly]);
 
   const stringsToTranslate = useMemo(() => {
     const s = new Set<string>();
@@ -74,6 +76,32 @@ export default function MenuPage() {
     if (activeCategory === "Dinner Combo") return t("menu.dinnerComboNote");
     return null;
   }, [activeCategory, t]);
+
+  const categoryNoteNode = useMemo(() => {
+    if (!categoryNote) return null;
+    const parts = categoryNote.split(
+      /(\b11\s*am\s*[–-]\s*3\s*pm\b|Roast\s+Pork\s+Fried\s+Rice|Can\s+Soda\.?)/gi
+    );
+    return (
+      <>
+        {parts
+          .filter((p) => p.length > 0)
+          .map((p, idx) => {
+            const isHighlight =
+              /^\b11\s*am\s*[–-]\s*3\s*pm\b$/i.test(p) ||
+              /^Roast\s+Pork\s+Fried\s+Rice$/i.test(p) ||
+              /^Can\s+Soda\.?$/i.test(p);
+            return isHighlight ? (
+              <span key={idx} className="font-bold text-red-600">
+                {p}
+              </span>
+            ) : (
+              <span key={idx}>{p}</span>
+            );
+          })}
+      </>
+    );
+  }, [categoryNote]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -180,15 +208,6 @@ export default function MenuPage() {
                 >
                   {t("menu.spicy")}
                 </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={popularOnly ? "secondary" : "outline"}
-                  className="rounded-full"
-                  onClick={() => setPopularOnly((v) => !v)}
-                >
-                  {t("menu.popular")}
-                </Button>
               </div>
             </div>
           </div>
@@ -229,10 +248,9 @@ export default function MenuPage() {
                       size="sm"
                       variant="ghost"
                       className="h-8 px-3 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
-                      disabled={!spicyOnly && !popularOnly}
+                      disabled={!spicyOnly}
                       onClick={() => {
                         setSpicyOnly(false);
-                        setPopularOnly(false);
                       }}
                     >
                       Clear Filters
@@ -249,14 +267,6 @@ export default function MenuPage() {
                   >
                     {t("menu.spicy")}
                   </Button>
-                  <Button
-                    type="button"
-                    variant={popularOnly ? "default" : "outline"}
-                    className="justify-start rounded-xl"
-                    onClick={() => setPopularOnly((v) => !v)}
-                  >
-                    {t("menu.popular")}
-                  </Button>
                 </div>
               </div>
             </div>
@@ -271,7 +281,7 @@ export default function MenuPage() {
                 </h2>
                 {categoryNote && (
                   <p className="text-sm text-muted-foreground break-words leading-relaxed">
-                    {categoryNote}
+                    {categoryNoteNode}
                   </p>
                 )}
               </div>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut, PackageSearch } from 'lucide-react';
+import { ShoppingCart, User, Menu as MenuIcon, Phone, MapPin, LogOut } from 'lucide-react';
 import { signOut as nextAuthSignOut } from "next-auth/react";
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
@@ -110,13 +110,6 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <Link href="/menu" className="hover:text-primary transition-colors">{t("nav.menu")}</Link>
             <Link href="/info" className="hover:text-primary transition-colors">{t("nav.information")}</Link>
-            <Link
-              href="/order-status"
-              className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-primary hover:bg-primary/10 transition-colors"
-            >
-              <PackageSearch className="h-3.5 w-3.5" />
-              {t("nav.orderStatus")}
-            </Link>
           </div>
         </div>
 
@@ -157,9 +150,6 @@ export function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/account/orders">{t("nav.orderHistory")}</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/order-status">{t("nav.orderStatus")}</Link>
                   </DropdownMenuItem>
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>
@@ -207,18 +197,6 @@ export function Navbar() {
           <div className="hidden md:block lg:hidden">
             <LanguageSwitcher />
           </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full border border-border/60 bg-muted/40 text-foreground hover:bg-muted/70 shrink-0"
-            asChild
-            aria-label={t("nav.trackOrderAria")}
-          >
-            <Link href="/order-status">
-              <PackageSearch className="h-5 w-5 text-primary" />
-            </Link>
-          </Button>
 
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
@@ -281,14 +259,6 @@ export function Navbar() {
                     onClick={() => handleMobileNavigate('/info')}
                   >
                     {t("nav.restaurantInfo")}
-                  </button>
-                  <button
-                    type="button"
-                    className="text-left text-lg font-medium hover:text-primary flex items-center gap-2"
-                    onClick={() => handleMobileNavigate('/order-status')}
-                  >
-                    <PackageSearch className="h-5 w-5 text-primary shrink-0" />
-                    {t("nav.orderStatus")}
                   </button>
                   {user ? (
                     <>

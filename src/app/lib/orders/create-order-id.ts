@@ -1,9 +1,14 @@
 import crypto from "node:crypto";
 
 /**
- * Short order id for receipts, account history, and admin lookup (e.g. ORD-A3F91C2B).
- * 8 hex chars after ORD- — enough entropy for typical order volume; avoids long timestamps in the id.
+ * Short order id for receipts and lookup (e.g. QJRM).
+ * 4 letters is intentionally brief; collisions are possible at high volume.
  */
 export function createOrderId(): string {
-  return `ORD-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let id = "";
+  for (let i = 0; i < 4; i++) {
+    id += letters[crypto.randomInt(0, letters.length)];
+  }
+  return id;
 }

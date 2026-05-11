@@ -9,7 +9,6 @@ import type { NavbarUser } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -32,7 +31,6 @@ import {
   Pencil,
   Settings,
   Sparkles,
-  User,
 } from "lucide-react";
 
 const PREFS_KEY = "emperors-account-prefs-v1";
@@ -40,24 +38,14 @@ const ACCOUNT_DRAFT_KEY_PREFIX = "emperors-account-draft-v1:";
 const ACCENT = "#46A3D3";
 const SIDEBAR_BG = "#F0F2F5";
 
-type Section = "settings" | "personal" | "privacy" | "notifications";
+type Section = "settings" | "privacy" | "notifications";
 
 type StoredPrefs = {
-  bio: string;
-  timezone: string;
   privacyReceiptEmail: boolean;
-  privacyAnalytics: boolean;
-  notifyOrderEmail: boolean;
-  notifyMarketing: boolean;
 };
 
 const defaultPrefs = (): StoredPrefs => ({
-  bio: "",
-  timezone: "",
   privacyReceiptEmail: true,
-  privacyAnalytics: false,
-  notifyOrderEmail: true,
-  notifyMarketing: false,
 });
 
 function initialsFromName(name: string) {
@@ -253,7 +241,6 @@ export default function AccountPage() {
     () =>
       [
         { id: "settings" as const, label: "Account settings", icon: Settings },
-        { id: "personal" as const, label: "Personal information", icon: User },
         { id: "privacy" as const, label: "Privacy", icon: Lock },
         { id: "notifications" as const, label: "Notifications", icon: Bell },
       ] as const,
@@ -263,7 +250,6 @@ export default function AccountPage() {
   const sectionTitle = useMemo(() => {
     const m: Record<Section, string> = {
       settings: "Account settings",
-      personal: "Personal information",
       privacy: "Privacy",
       notifications: "Notification preferences",
     };
@@ -418,6 +404,7 @@ export default function AccountPage() {
                     <Link href="/admin/menu">
                       <Settings className="h-4 w-4" />
                       Admin menu
+                      <ChevronRight className="ml-auto h-4 w-4 opacity-50" />
                     </Link>
                   </Button>
                 )}
@@ -438,9 +425,8 @@ export default function AccountPage() {
                 <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">{sectionTitle}</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {section === "settings" && "Update how you appear and how we reach you."}
-                  {section === "personal" && "Extra details for your experience (stored on this device)."}
-                  {section === "privacy" && "Control what we show and optional analytics."}
-                  {section === "notifications" && "Choose how we notify you about orders and updates."}
+                  {section === "privacy" && "Control what we show in order receipts."}
+                  {section === "notifications" && "Email notification toggles are no longer used."}
                 </p>
 
                 {user.provider === "google" && section === "settings" && (
@@ -578,57 +564,6 @@ export default function AccountPage() {
                   </div>
                 )}
 
-                {section === "personal" && prefsLoaded && (
-                  <div className="mt-8 space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio / notes</Label>
-                      <Textarea
-                        id="bio"
-                        rows={5}
-                        value={prefs.bio}
-                        onChange={(e) => savePrefs({ ...prefs, bio: e.target.value })}
-                        placeholder="Tell us your favorite dishes or dietary notes (optional)."
-                        className="resize-y rounded-xl border-border/80 bg-white"
-                      />
-                      <p className="text-xs text-muted-foreground">Stored only in this browser.</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Preferred timezone</Label>
-                      <Select
-                        value={prefs.timezone || "__default__"}
-                        onValueChange={(v) =>
-                          savePrefs({ ...prefs, timezone: v === "__default__" ? "" : v })
-                        }
-                      >
-                        <SelectTrigger className="h-11 rounded-lg border-border/80 bg-white">
-                          <SelectValue placeholder="Select…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__default__">(use device default)</SelectItem>
-                          <SelectItem value="America/New_York">Eastern (US)</SelectItem>
-                          <SelectItem value="America/Chicago">Central (US)</SelectItem>
-                          <SelectItem value="America/Denver">Mountain (US)</SelectItem>
-                          <SelectItem value="America/Los_Angeles">Pacific (US)</SelectItem>
-                          <SelectItem value="UTC">UTC</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        toast({
-                          title: "Saved",
-                          description: "Personal preferences stored in this browser.",
-                        })
-                      }
-                      className="rounded-full px-8 font-semibold text-white"
-                      style={{ backgroundColor: ACCENT }}
-                    >
-                      Save
-                    </Button>
-                  </div>
-                )}
-
                 {section === "privacy" && prefsLoaded && (
                   <div className="mt-8 space-y-8">
                     <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white px-4 py-4">
@@ -641,18 +576,6 @@ export default function AccountPage() {
                       <Switch
                         checked={prefs.privacyReceiptEmail}
                         onCheckedChange={(c) => savePrefs({ ...prefs, privacyReceiptEmail: c })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white px-4 py-4">
-                      <div>
-                        <p className="font-medium">Anonymous usage analytics</p>
-                        <p className="text-sm text-muted-foreground">
-                          Help us improve the site with privacy-friendly metrics.
-                        </p>
-                      </div>
-                      <Switch
-                        checked={prefs.privacyAnalytics}
-                        onCheckedChange={(c) => savePrefs({ ...prefs, privacyAnalytics: c })}
                       />
                     </div>
                     <Button
@@ -673,33 +596,16 @@ export default function AccountPage() {
 
                 {section === "notifications" && prefsLoaded && (
                   <div className="mt-8 space-y-8">
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white px-4 py-4">
+                    <div className="rounded-xl border border-border/60 bg-white px-4 py-4">
                       <div>
-                        <p className="font-medium">Order updates by email</p>
+                        <p className="font-medium">Notifications are managed per order</p>
                         <p className="text-sm text-muted-foreground">
-                          Confirmations and status when you place an order.
+                          We no longer store account-level email notification preferences in this page.
                         </p>
                       </div>
-                      <Switch
-                        checked={prefs.notifyOrderEmail}
-                        onCheckedChange={(c) => savePrefs({ ...prefs, notifyOrderEmail: c })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-white px-4 py-4">
-                      <div>
-                        <p className="font-medium">Tips &amp; promotions</p>
-                        <p className="text-sm text-muted-foreground">
-                          Occasional news from our kitchen (local preference only).
-                        </p>
-                      </div>
-                      <Switch
-                        checked={prefs.notifyMarketing}
-                        onCheckedChange={(c) => savePrefs({ ...prefs, notifyMarketing: c })}
-                      />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      These toggles are saved in your browser. Actual email delivery depends on your orders and
-                      system settings.
+                      Any messages you receive depend on the order flow and system settings.
                     </p>
                     <Button
                       type="button"

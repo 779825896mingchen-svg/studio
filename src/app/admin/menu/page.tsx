@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { loadPersistedMenuItems, persistMenuItems } from '@/app/lib/menu-persistence';
+import { expandChoiceItems } from '@/app/lib/expand-choice-items';
 
 export default function AdminMenuPage() {
   const [items, setItems] = useState<MenuItem[]>(menuItems);
@@ -26,7 +27,7 @@ export default function AdminMenuPage() {
 
   useEffect(() => {
     const persisted = loadPersistedMenuItems();
-    if (persisted) setItems(persisted);
+    if (persisted) setItems(expandChoiceItems(persisted));
   }, []);
 
   const handleSave = () => {

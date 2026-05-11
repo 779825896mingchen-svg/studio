@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShieldAlert } from "lucide-react";
+import { setGoogleOAuthIntent } from "@/app/lib/auth/set-google-oauth-intent";
 
 const ERROR_COPY: Record<string, string> = {
   OAuthSignin: "Could not reach Google. Try again in a moment.",
@@ -30,7 +31,16 @@ function OAuthSignInInner() {
 
   const startGoogle = () => {
     setBusy(true);
-    void signIn("google", { callbackUrl });
+    void (async () => {
+      await setGoogleOAuthIntent("signin");
+      const dest =
+        callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")
+          ? callbackUrl
+          : typeof window !== "undefined"
+            ? `${window.location.origin}${callbackUrl.startsWith("/") ? callbackUrl : `/${callbackUrl}`}`
+            : callbackUrl;
+      void signIn("google", { callbackUrl: dest });
+    })();
   };
 
   return (

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/i18n/dictionaries";
 
 const CACHE_VER = "v1";
+const TRANSLATE_MAX_BATCH = 45;
 
 function cacheId(locale: Locale, text: string): string {
   let h = 2166136261;
@@ -87,28 +88,31 @@ export function useBatchTranslate(texts: string[], locale: Locale) {
 
     void (async () => {
       try {
-        const res = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ texts: need, to: "es" }),
-        });
-        const data = (await res.json()) as { translations?: string[] };
-        if (
-          !res.ok ||
-          !Array.isArray(data.translations) ||
-          data.translations.length !== need.length
-        ) {
-          if (!cancelled) setLoading(false);
-          return;
-        }
-
         const pairs: [string, string][] = [];
         const next = { ...base };
-        need.forEach((t, i) => {
-          const tr = data.translations![i] ?? t;
-          next[t] = tr;
-          pairs.push([t, tr]);
-        });
+
+        for (let i = 0; i < need.length; i += TRANSLATE_MAX_BATCH) {
+          const chunk = need.slice(i, i + TRANSLATE_MAX_BATCH);
+          const res = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texts: chunk, to: "es" }),
+          });
+          const data = (await res.json()) as { translations?: string[] };
+          if (
+            !res.ok ||
+            !Array.isArray(data.translations) ||
+            data.translations.length !== chunk.length
+          ) {
+            continue;
+          }
+          chunk.forEach((t, idx) => {
+            const tr = data.translations![idx] ?? t;
+            next[t] = tr;
+            pairs.push([t, tr]);
+          });
+        }
+
         writeCache("es", pairs);
 
         if (!cancelled) {

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -31,7 +30,6 @@ type StoredOrder = {
   tax?: number;
   totalWithTax?: number;
   createdAt?: string;
-  status?: string;
 };
 
 function toUsd(amount: number) {
@@ -58,9 +56,6 @@ export default function AccountOrdersPage() {
   const [orders, setOrders] = useState<StoredOrder[]>([]);
   const [persistedMenu, setPersistedMenu] = useState<MenuItem[] | null>(null);
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "Received" | "Preparing" | "Ready for Pickup" | "Picked Up"
-  >("all");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
   const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
@@ -120,18 +115,12 @@ export default function AccountOrdersPage() {
     const matchesQuery = (o: StoredOrder) => {
       if (!q) return true;
       if (o.id?.toLowerCase().includes(q)) return true;
-      if (o.status?.toLowerCase().includes(q)) return true;
       for (const line of o.cart ?? []) {
         if (line.name?.toLowerCase().includes(q)) return true;
         if (line.selectedVariant?.toLowerCase().includes(q)) return true;
         if (line.instructions?.toLowerCase().includes(q)) return true;
       }
       return false;
-    };
-
-    const matchesStatus = (o: StoredOrder) => {
-      if (statusFilter === "all") return true;
-      return (o.status ?? "Received") === statusFilter;
     };
 
     const matchesDate = (o: StoredOrder) => {
@@ -143,7 +132,7 @@ export default function AccountOrdersPage() {
       return true;
     };
 
-    const base = [...orders].filter((o) => matchesQuery(o) && matchesStatus(o) && matchesDate(o));
+    const base = [...orders].filter((o) => matchesQuery(o) && matchesDate(o));
 
     const byCreated = (a: StoredOrder, b: StoredOrder) => {
       const am = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -161,16 +150,7 @@ export default function AccountOrdersPage() {
     if (sortBy === "oldest") return base.sort((a, b) => -byCreated(a, b));
     if (sortBy === "highest") return base.sort(byTotal);
     return base.sort((a, b) => -byTotal(a, b));
-  }, [fromDate, orders, query, sortBy, statusFilter, toDate]);
-
-  const statusStyles = useMemo(() => {
-    return {
-      Received: "bg-amber-100 text-amber-700 ring-amber-200",
-      Preparing: "bg-sky-100 text-sky-700 ring-sky-200",
-      "Ready for Pickup": "bg-emerald-100 text-emerald-700 ring-emerald-200",
-      "Picked Up": "bg-neutral-100 text-neutral-700 ring-neutral-200",
-    } as const;
-  }, []);
+  }, [fromDate, orders, query, sortBy, toDate]);
 
   const quickStats = useMemo(() => {
     const all = orders ?? [];
@@ -287,22 +267,6 @@ export default function AccountOrdersPage() {
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-neutral-700">Status</label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger className="h-11 rounded-2xl border-neutral-200 bg-neutral-50 px-4 text-sm">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="Received">Received</SelectItem>
-                  <SelectItem value="Preparing">Preparing</SelectItem>
-                  <SelectItem value="Ready for Pickup">Ready for Pickup</SelectItem>
-                  <SelectItem value="Picked Up">Picked Up</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-2 block text-sm font-semibold text-neutral-700">From</label>
@@ -356,12 +320,11 @@ export default function AccountOrdersPage() {
               className="flex-1 rounded-2xl border-primary/20 hover:bg-primary/5"
               onClick={() => {
                 setQuery("");
-                setStatusFilter("all");
                 setFromDate("");
                 setToDate("");
                 setSortBy("newest");
               }}
-              disabled={!query && statusFilter === "all" && !fromDate && !toDate && sortBy === "newest"}
+              disabled={!query && !fromDate && !toDate && sortBy === "newest"}
             >
               Reset
             </Button>
@@ -448,8 +411,6 @@ export default function AccountOrdersPage() {
             </div>
           ) : (
             filteredOrders.map((order) => {
-              const status = (order.status ?? "Received") as keyof typeof statusStyles;
-              const statusClass = statusStyles[status] ?? "bg-neutral-100 text-neutral-700 ring-neutral-200";
               const itemCount = (order.cart ?? []).reduce((s, l) => s + (l.quantity || 0), 0);
               const total = order.totalWithTax ?? order.totalPrice ?? 0;
               const subtotal = order.totalPrice ?? 0;
@@ -471,15 +432,6 @@ export default function AccountOrdersPage() {
                       <div>
                         <div className="flex flex-wrap items-center gap-3">
                           <h3 className="text-base font-semibold tracking-tight">{order.id}</h3>
-                          <span
-                            className={[
-                              "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1",
-                              statusClass,
-                            ].join(" ")}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
-                            {status}
-                          </span>
                         </div>
                         <p className="mt-2 text-sm text-neutral-500">{formatEST(order.createdAt)}</p>
                         <p className="mt-1 text-sm text-neutral-500">Emperor&apos;s Choice · Clayton, NC</p>

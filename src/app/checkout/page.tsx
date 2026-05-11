@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
@@ -46,14 +47,22 @@ export default function CheckoutPage() {
   const [orderTiming, setOrderTiming] = useState<"asap" | "scheduled">("asap");
   const [scheduleTime, setScheduleTime] = useState("");
   const [nameTouched, setNameTouched] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((data: { user?: { name?: string; email?: string; phone?: string } | null }) => {
-        if (cancelled || !data?.user) return;
+        if (cancelled) return;
+        if (!data?.user) {
+          setLoggedIn(false);
+          setAuthChecked(true);
+          return;
+        }
         const u = data.user;
+        setLoggedIn(true);
         setName((prev) => prev.trim() || u.name?.trim() || "");
         setEmail((prev) => prev.trim() || u.email?.trim() || "");
         setPhoneDigits((prev) => {
@@ -61,8 +70,13 @@ export default function CheckoutPage() {
           const digits = (u.phone || "").replace(/\D/g, "").slice(0, 10);
           return digits;
         });
+        setAuthChecked(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (cancelled) return;
+        setLoggedIn(false);
+        setAuthChecked(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -144,13 +158,20 @@ export default function CheckoutPage() {
         | null;
 
       clearCart();
+      if (data?.orderId && typeof window !== "undefined") {
+        window.open(
+          `/receipt/${encodeURIComponent(data.orderId)}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      }
       toast({
         title: scheduledFor ? t("checkout.toastScheduled") : t("checkout.toastPlaced"),
         description: data?.orderId
           ? t("checkout.toastDescWithId", { id: data.orderId })
           : t("checkout.toastDescGeneric"),
       });
-      router.push("/order-status");
+      router.push("/menu");
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -160,6 +181,61 @@ export default function CheckoutPage() {
 
   const tax = totalPrice * 0.08;
   const totalWithTax = totalPrice + tax;
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-10">
+          <Card className="max-w-xl mx-auto border-border/60 shadow-sm bg-card/95 rounded-3xl">
+            <CardContent className="p-8 text-center space-y-2">
+              <h1 className="text-xl font-headline font-bold">{t("checkout.checkingAccount")}</h1>
+              <p className="text-sm text-muted-foreground">{t("checkout.checkingAccountHint")}</p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  if (!loggedIn) {
+    const nextCheckout = encodeURIComponent("/checkout");
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-10">
+          <div className="max-w-xl mx-auto space-y-6">
+            <Card className="border-border/60 shadow-sm bg-card/95 rounded-3xl border-amber-500/30">
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <User className="w-7 h-7 text-amber-700 dark:text-amber-400" />
+                </div>
+                <h1 className="text-xl font-headline font-bold">{t("checkout.loginRequiredTitle")}</h1>
+                <p className="text-sm text-muted-foreground leading-relaxed">{t("checkout.loginRequiredBody")}</p>
+                {cart.length > 0 && (
+                  <p className="text-sm font-medium text-foreground">
+                    {totalItems} {totalItems === 1 ? t("checkout.item") : t("checkout.items")}{" "}
+                    {t("checkout.inBasket")}
+                  </p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                  <Button asChild className="rounded-xl bg-primary hover:bg-primary/90">
+                    <Link href={`/signin?next=${nextCheckout}`}>{t("checkout.loginRequiredSignIn")}</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href="/signup">{t("checkout.loginRequiredSignUp")}</Link>
+                  </Button>
+                </div>
+                <Button asChild variant="ghost" className="text-muted-foreground">
+                  <Link href="/menu">{t("checkout.browseMenu")}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -244,7 +320,9 @@ export default function CheckoutPage() {
                               </p>
                               {item.selectedVariant && (
                                 <p className="text-[11px] text-primary font-medium mt-1">
-                                  {t("checkout.choice")} {resolve(item.selectedVariant.trim())}
+                                  {item.selectedVariant.includes(":")
+                                    ? resolve(item.selectedVariant.trim())
+                                    : `${t("checkout.choice")} ${resolve(item.selectedVariant.trim())}`}
                                 </p>
                               )}
                               {item.instructions && (

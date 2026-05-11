@@ -66,7 +66,9 @@ export function CartContent() {
                   <h4 className="font-headline font-bold text-sm leading-tight">{resolve(item.name)}</h4>
                   {item.selectedVariant && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">
-                      {t("cart.choice")} {resolve(item.selectedVariant.trim())}
+                      {item.selectedVariant.includes(":")
+                        ? resolve(item.selectedVariant.trim())
+                        : `${t("cart.choice")} ${resolve(item.selectedVariant.trim())}`}
                     </p>
                   )}
                   {item.instructions && (

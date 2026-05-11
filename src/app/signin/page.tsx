@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Navbar } from "@/components/layout/Navbar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { LogIn, Mail, Key, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { setGoogleOAuthIntent } from "@/app/lib/auth/set-google-oauth-intent";
 
-export default function SignInPage() {
+function SignInForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const welcomedRef = useRef(false);
+  const googleHasAccountRef = useRef(false);
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +28,41 @@ export default function SignInPage() {
   const [identifierTouched, setIdentifierTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [googlePending, setGooglePending] = useState(false);
+
+  useEffect(() => {
+    if (welcomedRef.current) return;
+    if (searchParams.get("registered") !== "1") return;
+    welcomedRef.current = true;
+    toast({
+      title: "You're all set",
+      description: "Sign in with Google (same email) or use your email and password.",
+    });
+    router.replace("/signin", { scroll: false });
+  }, [searchParams, router, toast]);
+
+  useEffect(() => {
+    if (googleHasAccountRef.current) return;
+    if (searchParams.get("googleHasAccount") !== "1") return;
+    googleHasAccountRef.current = true;
+    const em = searchParams.get("email")?.trim();
+    toast({
+      title: "Account already exists",
+      description: em
+        ? `An account is already registered for ${em}. Sign in with Google or your password instead.`
+        : "An account is already registered for that Google email. Please sign in instead.",
+    });
+    if (em) setIdentifier(em);
+    const next = searchParams.get("next");
+    const qs = new URLSearchParams();
+    if (next && next.startsWith("/") && !next.startsWith("//")) qs.set("next", next);
+    router.replace(qs.size ? `/signin?${qs.toString()}` : "/signin", { scroll: false });
+  }, [searchParams, router, toast]);
+
+  const postLoginPath = useMemo(() => {
+    const next = searchParams.get("next")?.trim();
+    if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+    return "/account";
+  }, [searchParams]);
 
   const identifierDigits = identifier.replace(/\D/g, "").slice(0, 10);
   const isValidEmail = /\S+@\S+\.\S+/.test(identifier.trim());
@@ -67,7 +106,7 @@ export default function SignInPage() {
         description: "Welcome back.",
       });
 
-      router.push("/account");
+      router.push(postLoginPath);
     } finally {
       setIsSubmitting(false);
     }
@@ -171,7 +210,14 @@ export default function SignInPage() {
                 disabled={isSubmitting || googlePending}
                 onClick={() => {
                   setGooglePending(true);
-                  void signIn("google", { callbackUrl: "/account" });
+                  void (async () => {
+                    await setGoogleOAuthIntent("signin");
+                    const dest =
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}${postLoginPath}`
+                        : postLoginPath;
+                    void signIn("google", { callbackUrl: dest });
+                  })();
                 }}
               >
                 <Image src="/google-g.png" alt="Google" width={18} height={18} />
@@ -200,3 +246,16 @@ export default function SignInPage() {
   );
 }
 
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <SignInForm />
+    </Suspense>
+  );
+}
