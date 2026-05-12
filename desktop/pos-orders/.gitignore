@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# electron-builder — installers and unpacked Chromium (too large for GitHub)
+release/

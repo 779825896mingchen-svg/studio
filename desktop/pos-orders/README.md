@@ -34,6 +34,8 @@ npm run dev
 npm run dist
 ```
 
+Output is under `release/` (installer + `win-unpacked/`). That folder is **gitignored** — it is hundreds of MB and must not be committed; distribute builds via Drive / releases page instead.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
